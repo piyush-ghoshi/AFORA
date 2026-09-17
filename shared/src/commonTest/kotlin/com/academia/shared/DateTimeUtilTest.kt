@@ -19,17 +19,17 @@ class DateTimeUtilTest {
     }
 
     @Test
-    fun `parseISO8601 should handle valid timestamp`() {
+    fun `parseDateTime should handle valid timestamp`() {
         val timestamp = "2024-08-25T10:30:00Z"
-        val instant = DateTimeUtil.parseISO8601(timestamp)
+        val instant = DateTimeUtil.parseDateTime(timestamp)
         assertNotNull(instant)
     }
 
     @Test
-    fun `formatISO8601 should format instant correctly`() {
-        val instant = DateTimeUtil.parseISO8601("2024-08-25T10:30:00Z")
-        val formatted = DateTimeUtil.formatISO8601(instant)
-        assertNotNull(formatted)
-        assertTrue(formatted.contains("2024"))
+    fun `today should return current date`() {
+        val today = DateTimeUtil.today()
+        assertNotNull(today)
+        assertTrue(today.isNotEmpty())
+        assertTrue(today.contains("-")) // Should contain date separators
     }
 }

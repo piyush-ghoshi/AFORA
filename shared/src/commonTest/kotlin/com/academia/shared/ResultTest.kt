@@ -23,7 +23,7 @@ class ResultTest {
     @Test
     fun `Result Error should contain error`() {
         val error = AppError.NetworkError("Connection failed")
-        val result = Result.Error<String>(error)
+        val result: Result<String> = Result.Error(error)
         
         assertTrue(result is Result.Error)
         assertEquals(error, result.error)
