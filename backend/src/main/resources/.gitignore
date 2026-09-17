@@ -1,0 +1,7 @@
+# Firebase service account credentials
+firebase-service-account.json
+
+# Environment-specific secrets
+application-secrets.yml
+*.key
+*.pem

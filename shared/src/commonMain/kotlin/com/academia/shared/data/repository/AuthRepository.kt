@@ -4,47 +4,86 @@ import com.academia.shared.domain.model.User
 import com.academia.shared.util.Result
 
 /**
- * Authentication repository interface.
+ * Authentication repository interface for Firebase Authentication.
+ * 
+ * Phase A2: Firebase-based authentication.
  */
 interface AuthRepository {
     /**
-     * Login with username and password.
-     * @return User with auth token on success
+     * Login with email and password using Firebase Authentication.
+     * @param email User email
+     * @param password User password
+     * @return AuthResult with user and Firebase ID token
      */
-    suspend fun login(username: String, password: String): Result<AuthResult>
+    suspend fun login(email: String, password: String): Result<AuthResult>
     
     /**
-     * Logout current user.
+     * Register new user with email and password.
+     * @param email User email
+     * @param password User password
+     * @param firstName User first name
+     * @param lastName User last name
+     * @param role User role (STUDENT, TEACHER, ADMIN)
+     * @return AuthResult with created user and Firebase ID token
+     */
+    suspend fun register(
+        email: String,
+        password: String,
+        firstName: String,
+        lastName: String,
+        role: String
+    ): Result<AuthResult>
+    
+    /**
+     * Logout current user (sign out from Firebase).
      */
     suspend fun logout(): Result<Unit>
     
     /**
-     * Refresh authentication token.
-     */
-    suspend fun refreshToken(refreshToken: String): Result<AuthResult>
-    
-    /**
-     * Get currently authenticated user.
+     * Get currently authenticated user from Firebase.
+     * @return Current user if authenticated, error otherwise
      */
     suspend fun getCurrentUser(): Result<User>
     
     /**
-     * Check if user is authenticated.
+     * Get Firebase ID token for current user.
+     * Token is auto-refreshed by Firebase SDK if expired.
+     * @param forceRefresh Force token refresh
+     * @return Firebase ID token
+     */
+    suspend fun getIdToken(forceRefresh: Boolean = false): Result<String>
+    
+    /**
+     * Check if user is currently authenticated.
      */
     suspend fun isAuthenticated(): Boolean
     
     /**
-     * Get stored auth token (if any).
+     * Send password reset email.
+     * @param email User email
      */
-    suspend fun getAuthToken(): String?
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit>
+    
+    /**
+     * Update user password (requires re-authentication).
+     * @param currentPassword Current password for verification
+     * @param newPassword New password
+     */
+    suspend fun updatePassword(currentPassword: String, newPassword: String): Result<Unit>
+    
+    /**
+     * Re-authenticate user with current credentials.
+     * Required before sensitive operations like password change.
+     * @param password Current password
+     */
+    suspend fun reauthenticate(password: String): Result<Unit>
 }
 
 /**
- * Authentication result containing user and tokens.
+ * Authentication result containing user and Firebase ID token.
  */
 data class AuthResult(
     val user: User,
-    val accessToken: String,
-    val refreshToken: String,
-    val expiresIn: Long  // Seconds until expiry
+    val idToken: String,        // Firebase ID token (send to backend)
+    val expiresIn: Long         // Seconds until token expiry
 )

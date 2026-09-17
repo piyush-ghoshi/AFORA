@@ -1,0 +1,10 @@
+# Android build artifacts
+/build
+*.apk
+*.aab
+
+# Google Services (Firebase) - KEEP THIS PRIVATE
+google-services.json
+
+# Local config
+local.properties

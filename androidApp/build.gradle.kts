@@ -3,6 +3,7 @@ plugins {
     kotlin("android")
     id("com.google.dagger.hilt.android")
     kotlin("kapt")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -105,6 +106,22 @@ dependencies {
     
     // Splash Screen
     implementation("androidx.core:core-splashscreen:1.0.1")
+    
+    // Firebase BOM (Bill of Materials) - manages Firebase versions
+    val firebaseBom = platform("com.google.firebase:firebase-bom:32.7.0")
+    implementation(firebaseBom)
+    
+    // Firebase Authentication
+    implementation("com.google.firebase:firebase-auth-ktx")
+    
+    // Firebase UI (optional - provides pre-built auth UI)
+    implementation("com.firebaseui:firebase-ui-auth:8.0.2")
+    
+    // Google Play Services Auth (for Google Sign-In)
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+    
+    // Encrypted SharedPreferences for secure token storage
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
     
     // Testing
     testImplementation("junit:junit:4.13.2")

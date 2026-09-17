@@ -28,10 +28,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     
-    // JWT
-    implementation("io.jsonwebtoken:jjwt-api:0.12.3")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.3")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.3")
+    // Firebase Admin SDK for authentication
+    implementation("com.google.firebase:firebase-admin:9.2.0")
     
     // PostgreSQL
     runtimeOnly("org.postgresql:postgresql")

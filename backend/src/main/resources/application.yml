@@ -44,11 +44,9 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
-# JWT Configuration (placeholder for Phase A2)
-jwt:
-  secret: ${JWT_SECRET:temporary-secret-key-change-in-production-min-256-bits}
-  expiration: 86400000  # 24 hours in milliseconds
-  refresh-expiration: 604800000  # 7 days in milliseconds
+# Firebase Configuration (Phase A2)
+firebase:
+  service-account-key: classpath:firebase-service-account.json
 
 # CORS Configuration
 cors:
