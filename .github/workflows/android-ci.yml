@@ -1,0 +1,68 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'shared/**'
+      - 'androidApp/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - '.github/workflows/android-ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'shared/**'
+      - 'androidApp/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+
+jobs:
+  build:
+    name: Build Android
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        cache: 'gradle'
+    
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    
+    - name: Build shared module
+      run: ./gradlew :shared:build --no-daemon
+    
+    - name: Build Android app
+      run: ./gradlew :androidApp:assembleDebug --no-daemon
+    
+    - name: Run shared tests
+      run: ./gradlew :shared:testDebugUnitTest --no-daemon
+    
+    - name: Run Android lint
+      run: ./gradlew :androidApp:lintDebug --no-daemon
+      continue-on-error: true
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: android-apk
+        path: androidApp/build/outputs/apk/debug/*.apk
+        retention-days: 7
+    
+    - name: Upload lint reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: lint-reports
+        path: androidApp/build/reports/lint-results-debug.html
+        retention-days: 7

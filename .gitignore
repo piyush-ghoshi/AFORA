@@ -1,0 +1,62 @@
+# Gradle
+.gradle/
+build/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+.gradletasknamecache
+
+# Android
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+bin/
+gen/
+out/
+captures/
+.externalNativeBuild
+.cxx
+local.properties
+*.iml
+.idea/
+.DS_Store
+
+# Backend
+backend/.gradle/
+backend/build/
+backend/out/
+backend/bin/
+backend/.settings/
+backend/.classpath
+backend/.project
+
+# KMP
+shared/.gradle/
+shared/build/
+androidApp/.gradle/
+androidApp/build/
+
+# IDEs
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+
+# Secrets
+*.key
+*.keystore
+*.jks
+secrets.properties
+
+# Database
+*.db
+*.sqlite

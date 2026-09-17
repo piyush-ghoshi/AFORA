@@ -1,0 +1,36 @@
+name: Full Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  android:
+    name: Android Build
+    uses: ./.github/workflows/android-ci.yml
+  
+  backend:
+    name: Backend Build
+    uses: ./.github/workflows/backend-ci.yml
+  
+  status:
+    name: Build Status
+    runs-on: ubuntu-latest
+    needs: [android, backend]
+    if: always()
+    
+    steps:
+    - name: Check build status
+      run: |
+        if [ "${{ needs.android.result }}" == "success" ] && [ "${{ needs.backend.result }}" == "success" ]; then
+          echo "✅ All builds passed"
+          exit 0
+        else
+          echo "❌ Some builds failed"
+          echo "Android: ${{ needs.android.result }}"
+          echo "Backend: ${{ needs.backend.result }}"
+          exit 1
+        fi
