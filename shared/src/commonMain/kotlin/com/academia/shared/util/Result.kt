@@ -48,6 +48,7 @@ sealed class AppError(open val message: String) {
     data class ApiError(val code: Int, override val message: String) : AppError(message)
     data class ValidationError(val errors: List<String>) : AppError(errors.joinToString(", "))
     data class UnauthorizedError(override val message: String = "Unauthorized") : AppError(message)
+    data class AuthenticationError(override val message: String) : AppError(message)
     data class NotFoundError(override val message: String = "Resource not found") : AppError(message)
     data class UnknownError(override val message: String = "Unknown error") : AppError(message)
 }

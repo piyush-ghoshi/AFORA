@@ -258,12 +258,12 @@ class FirebaseAuthRepository(
      */
     private fun mapFirebaseAuthException(exception: FirebaseAuthException): AppError {
         return when (exception.errorCode) {
-            "ERROR_INVALID_EMAIL" -> AppError.ValidationError("Invalid email format")
+            "ERROR_INVALID_EMAIL" -> AppError.ValidationError(listOf("Invalid email format"))
             "ERROR_WRONG_PASSWORD" -> AppError.AuthenticationError("Invalid password")
             "ERROR_USER_NOT_FOUND" -> AppError.AuthenticationError("User not found")
             "ERROR_USER_DISABLED" -> AppError.AuthenticationError("Account has been disabled")
-            "ERROR_EMAIL_ALREADY_IN_USE" -> AppError.ValidationError("Email already in use")
-            "ERROR_WEAK_PASSWORD" -> AppError.ValidationError("Password is too weak")
+            "ERROR_EMAIL_ALREADY_IN_USE" -> AppError.ValidationError(listOf("Email already in use"))
+            "ERROR_WEAK_PASSWORD" -> AppError.ValidationError(listOf("Password is too weak"))
             "ERROR_NETWORK_REQUEST_FAILED" -> AppError.NetworkError("Network error")
             "ERROR_TOO_MANY_REQUESTS" -> AppError.AuthenticationError("Too many requests. Try again later")
             else -> AppError.UnknownError("Authentication error: ${exception.message}")

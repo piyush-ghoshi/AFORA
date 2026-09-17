@@ -4,16 +4,24 @@ import kotlinx.serialization.Serializable
 
 /**
  * User entity representing authentication and authorization.
+ * 
+ * Phase A2: Integrated with Firebase Authentication.
  */
 @Serializable
 data class User(
-    val id: Long,
-    val username: String,
+    val id: Long = 0,
+    val firebaseUid: String,
     val email: String,
-    val role: UserRole,
+    val firstName: String,
+    val lastName: String,
+    val role: String, // STUDENT, TEACHER, ADMIN
+    val profilePictureUrl: String? = null,
     val isActive: Boolean = true,
     val lastLoginAt: String? = null  // ISO 8601 datetime string
-)
+) {
+    val fullName: String
+        get() = "$firstName $lastName"
+}
 
 /**
  * User roles for RBAC.

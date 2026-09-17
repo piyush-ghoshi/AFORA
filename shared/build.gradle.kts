@@ -48,6 +48,16 @@ kotlin {
                 implementation("androidx.core:core-ktx:1.12.0")
                 implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
                 
+                // Firebase BOM
+                val firebaseBom = project.dependencies.platform("com.google.firebase:firebase-bom:32.7.0")
+                implementation(firebaseBom)
+                
+                // Firebase Authentication
+                implementation("com.google.firebase:firebase-auth-ktx")
+                
+                // Google Play Services for Firebase Tasks API
+                implementation("com.google.android.gms:play-services-tasks:18.0.2")
+                
                 // Camera
                 implementation("androidx.camera:camera-core:1.3.0")
                 implementation("androidx.camera:camera-camera2:1.3.0")

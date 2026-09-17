@@ -1,4 +1,4 @@
-plugins {
+ plugins {
     id("com.android.application")
     kotlin("android")
     id("com.google.dagger.hilt.android")
@@ -11,7 +11,7 @@ android {
     compileSdk = 34
     
     defaultConfig {
-        applicationId = "com.academia.attendance"
+        applicationId = "com.afora.android"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -33,7 +33,8 @@ android {
         }
         debug {
             isMinifyEnabled = false
-            applicationIdSuffix = ".debug"
+            // Temporarily removed applicationIdSuffix to match Firebase google-services.json
+            // applicationIdSuffix = ".debug"
         }
     }
     
