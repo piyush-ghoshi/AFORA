@@ -49,6 +49,42 @@ class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response)
     }
 
+    @ExceptionHandler(NotFoundException::class)
+    fun handleNotFound(
+        ex: NotFoundException,
+        request: WebRequest
+    ): ResponseEntity<ApiResponse<Nothing>> {
+        val response = ApiResponse.error<Nothing>(
+            message = ex.message ?: "Not found",
+            code = "NOT_FOUND"
+        )
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response)
+    }
+
+    @ExceptionHandler(ConflictException::class)
+    fun handleConflict(
+        ex: ConflictException,
+        request: WebRequest
+    ): ResponseEntity<ApiResponse<Nothing>> {
+        val response = ApiResponse.error<Nothing>(
+            message = ex.message ?: "Conflict",
+            code = "CONFLICT"
+        )
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response)
+    }
+
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun handleIllegalArgument(
+        ex: IllegalArgumentException,
+        request: WebRequest
+    ): ResponseEntity<ApiResponse<Nothing>> {
+        val response = ApiResponse.error<Nothing>(
+            message = ex.message ?: "Invalid request",
+            code = "BAD_REQUEST"
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response)
+    }
+
     @ExceptionHandler(Exception::class)
     fun handleGenericException(
         ex: Exception,
@@ -66,3 +102,5 @@ class GlobalExceptionHandler {
 class ResourceNotFoundException(message: String) : RuntimeException(message)
 class BadRequestException(message: String) : RuntimeException(message)
 class UnauthorizedException(message: String) : RuntimeException(message)
+class NotFoundException(message: String) : RuntimeException(message)
+class ConflictException(message: String) : RuntimeException(message)
