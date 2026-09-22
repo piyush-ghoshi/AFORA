@@ -20,7 +20,7 @@ Refer to **[FIREBASE_SETUP.md](../FIREBASE_SETUP.md)** in the project root for c
 2. Select your **AFORA** project
 3. Click ⚙️ **Project Settings**
 4. Scroll to **"Your apps"** section
-5. Find the Android app (`com.academia.android`)
+5. Find the Android app (`com.afora.android`)
 6. Click **"google-services.json"** download button
 
 ### Step 3: Place the File
@@ -83,8 +83,8 @@ AFORA/
 
 ### "Package name mismatch"
 **Check:**
-- Firebase Console Android app package: `com.academia.android`
-- androidApp/build.gradle.kts namespace: `com.academia.android`
+- Firebase Console Android app package: `com.afora.android`
+- androidApp/build.gradle.kts namespace: `com.afora.android`
 - They must match exactly
 
 ---

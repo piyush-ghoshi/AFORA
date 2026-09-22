@@ -181,7 +181,7 @@ AFORA/
 ### 3. Android App Module ✅
 
 **Application** (`androidApp/`):
-- `AcademiaApplication.kt` - App entry point with Hilt & Koin
+- `AforaApplication.kt` - App entry point with Hilt & Koin
 - `MainActivity.kt` - Main activity with Compose
 - `FoundationScreen.kt` - Phase A1 verification screen
 
@@ -202,7 +202,7 @@ AFORA/
 ### 4. Spring Boot Backend ✅
 
 **Application** (`backend/`):
-- `AcademiaBackendApplication.kt` - Spring Boot main class
+- `AforaBackendApplication.kt` - Spring Boot main class
 
 **Common Infrastructure** (`backend/common/`):
 - `WebConfig.kt` - CORS configuration
@@ -885,7 +885,7 @@ AFORA/
 ├── androidApp/
 │   ├── src/main/
 │   │   ├── kotlin/com/academia/android/
-│   │   │   ├── AcademiaApplication.kt
+│   │   │   ├── AforaApplication.kt
 │   │   │   ├── MainActivity.kt
 │   │   │   └── ui/theme/
 │   │   │       ├── Color.kt
@@ -903,7 +903,7 @@ AFORA/
 │   ├── src/
 │   │   ├── main/
 │   │   │   ├── kotlin/com/academia/backend/
-│   │   │   │   ├── AcademiaBackendApplication.kt
+│   │   │   │   ├── AforaBackendApplication.kt
 │   │   │   │   ├── common/
 │   │   │   │   │   ├── config/
 │   │   │   │   │   ├── controller/

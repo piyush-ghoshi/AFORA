@@ -29,7 +29,7 @@ This guide walks you through setting up Firebase Authentication for the AFORA pr
 ## Step 3: Add Android App
 
 1. In Firebase Console, click the **Android icon** (⚙️ Project settings → Add app)
-2. **Android package name:** `com.academia.android`
+2. **Android package name:** `com.afora.android`
 3. **App nickname:** AFORA Android (optional)
 4. **Debug signing certificate SHA-1:** (optional for now, required for Google Sign-In)
    ```bash

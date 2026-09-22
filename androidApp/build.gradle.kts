@@ -7,12 +7,12 @@
 }
 
 android {
-    namespace = "com.academia.android"
+    namespace = "com.afora.android"
     compileSdk = 34
     
     defaultConfig {
         // applicationId must match the package_name registered in Firebase Console
-        // and in google-services.json. The Kotlin source namespace (com.academia.android)
+        // and in google-services.json. The Kotlin source namespace (com.afora.android)
         // is separate from the Firebase application ID (com.afora.android).
         applicationId = "com.afora.android"
         minSdk = 24

@@ -39,7 +39,7 @@ server:
 logging:
   level:
     root: INFO
-    com.academia.backend: DEBUG
+    com.afora.backend: DEBUG
     org.springframework.web: INFO
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE

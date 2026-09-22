@@ -110,7 +110,7 @@ project-root/
 │   │   │   ├── kotlin/
 │   │   │   │   ├── com/academia/android/
 │   │   │   │   │   ├── MainActivity.kt
-│   │   │   │   │   ├── AcademiaApplication.kt
+│   │   │   │   │   ├── AforaApplication.kt
 │   │   │   │   │   ├── ui/                    # Jetpack Compose UI
 │   │   │   │   │   │   ├── theme/
 │   │   │   │   │   │   ├── components/
@@ -150,7 +150,7 @@ All core business models are fully shared:
 
 ```kotlin
 // shared/commonMain
-package com.academia.shared.domain.model
+package com.afora.shared.domain.model
 
 data class Student(
     val id: Long,
@@ -225,7 +225,7 @@ enum class ConfidenceCategory {
 
 ```kotlin
 // shared/commonMain
-package com.academia.shared.data.repository
+package com.afora.shared.data.repository
 
 interface AttendanceRepository {
     suspend fun startLectureSession(lectureId: Long): Result<LectureSession>
@@ -250,7 +250,7 @@ interface FaceRepository {
 
 ```kotlin
 // shared/commonMain
-package com.academia.shared.domain.usecase
+package com.afora.shared.domain.usecase
 
 class AttendanceUseCase(
     private val repository: AttendanceRepository,
@@ -298,7 +298,7 @@ class AttendanceUseCase(
 
 ```kotlin
 // shared/commonMain
-package com.academia.shared.validation
+package com.afora.shared.validation
 
 class AttendanceValidator {
     fun validateAttendance(
@@ -342,7 +342,7 @@ data class ValidationResult(
 
 ```kotlin
 // shared/commonMain
-package com.academia.shared.data.api
+package com.afora.shared.data.api
 
 class ApiClient(private val httpClient: HttpClient) {
     suspend fun login(username: String, password: String): Result<AuthResponse> {
@@ -391,7 +391,7 @@ class ApiClient(private val httpClient: HttpClient) {
 
 ```kotlin
 // shared/commonMain
-package com.academia.shared.platform
+package com.afora.shared.platform
 
 import kotlinx.coroutines.flow.Flow
 
@@ -421,7 +421,7 @@ data class Resolution(val width: Int, val height: Int)
 
 ```kotlin
 // shared/androidMain
-package com.academia.shared.platform
+package com.afora.shared.platform
 
 import android.content.Context
 import androidx.camera.core.*
@@ -490,7 +490,7 @@ actual class CameraController(
 
 ```kotlin
 // shared/iosMain
-package com.academia.shared.platform
+package com.afora.shared.platform
 
 import kotlinx.coroutines.flow.Flow
 
@@ -519,7 +519,7 @@ actual class CameraController {
 
 ```kotlin
 // shared/commonMain
-package com.academia.shared.platform
+package com.afora.shared.platform
 
 expect class FaceDetector {
     suspend fun detectFaces(image: PlatformImage): List<DetectedFace>
@@ -559,7 +559,7 @@ enum class LandmarkType {
 
 ```kotlin
 // shared/androidMain
-package com.academia.shared.platform
+package com.afora.shared.platform
 
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
@@ -615,7 +615,7 @@ actual class FaceDetector {
 
 ```kotlin
 // shared/commonMain
-package com.academia.shared.platform
+package com.afora.shared.platform
 
 expect class FaceRecognizer {
     suspend fun generateEmbedding(face: DetectedFace, image: PlatformImage): FloatArray
@@ -631,7 +631,7 @@ expect class FaceRecognizer {
 
 ```kotlin
 // shared/androidMain
-package com.academia.shared.platform
+package com.afora.shared.platform
 
 import org.tensorflow.lite.Interpreter
 import java.nio.ByteBuffer
@@ -715,7 +715,7 @@ actual class FaceRecognizer(private val modelPath: String) {
 
 ```kotlin
 // shared/commonMain
-package com.academia.shared.platform
+package com.afora.shared.platform
 
 expect class PlatformImage {
     fun getWidth(): Int
@@ -729,7 +729,7 @@ expect class PlatformImage {
 
 ```kotlin
 // shared/androidMain
-package com.academia.shared.platform
+package com.afora.shared.platform
 
 import android.graphics.Bitmap
 import androidx.camera.core.ImageProxy
@@ -773,7 +773,7 @@ actual class AndroidPlatformImage(private val imageProxy: ImageProxy) : Platform
 
 ```kotlin
 // androidApp/
-package com.academia.android.viewmodel
+package com.afora.android.viewmodel
 
 @HiltViewModel
 class CameraAttendanceViewModel @Inject constructor(
@@ -891,7 +891,7 @@ sealed class ScanningState {
 
 ```kotlin
 // shared/commonMain
-package com.academia.shared.di
+package com.afora.shared.di
 
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -920,7 +920,7 @@ expect fun createHttpClient(): HttpClient
 
 ```kotlin
 // androidApp/
-package com.academia.android.di
+package com.afora.android.di
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -962,7 +962,7 @@ object AppModule {
 
 ```kotlin
 // shared/commonTest
-package com.academia.shared.domain.usecase
+package com.afora.shared.domain.usecase
 
 class AttendanceUseCaseTest {
     
@@ -1072,7 +1072,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.academia.shared"
+    namespace = "com.afora.shared"
     compileSdk = 34
     
     defaultConfig {

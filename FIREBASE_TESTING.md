@@ -21,7 +21,7 @@ cd backend
 ```
 ✅ Firebase Admin SDK initialized successfully
 Firebase project ID: afora-5f362
-Started AcademiaBackendApplication
+Started AforaBackendApplication
 ```
 
 ### 2. Test Backend Health Endpoint
@@ -260,7 +260,7 @@ After successful testing:
 ## Project Info
 
 - **Firebase Project ID:** afora-5f362
-- **Package Name:** com.academia.android
+- **Package Name:** com.afora.android
 - **Backend Port:** 8080
 - **Database:** afora_dev
 

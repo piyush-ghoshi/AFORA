@@ -16,4 +16,4 @@ server:
 
 logging:
   level:
-    com.academia.backend: DEBUG
+    com.afora.backend: DEBUG

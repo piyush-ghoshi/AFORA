@@ -251,7 +251,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.academia.shared"
+    namespace = "com.afora.shared"
     compileSdk = 34
     
     defaultConfig {
@@ -281,7 +281,7 @@ androidApp/
 │   ├── main/
 │   │   ├── kotlin/
 │   │   │   └── com/academia/android/
-│   │   │       ├── AcademiaApplication.kt
+│   │   │       ├── AforaApplication.kt
 │   │   │       ├── MainActivity.kt
 │   │   │       ├── ui/
 │   │   │       │   ├── theme/
@@ -377,7 +377,7 @@ plugins {
 }
 
 android {
-    namespace = "com.academia.android"
+    namespace = "com.afora.android"
     compileSdk = 34
     
     defaultConfig {
@@ -493,7 +493,7 @@ backend/
 │   ├── main/
 │   │   ├── java/
 │   │   │   └── com/academia/backend/
-│   │   │       ├── AcademiaBackendApplication.java
+│   │   │       ├── AforaBackendApplication.java
 │   │   │       ├── config/
 │   │   │       │   ├── SecurityConfig.java
 │   │   │       │   ├── WebConfig.java

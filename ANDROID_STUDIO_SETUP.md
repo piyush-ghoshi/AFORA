@@ -228,7 +228,7 @@ View app logs:
 
 Browse app files on device:
 - View > Tool Windows > Device File Explorer
-- Navigate to `/data/data/com.academia.android/`
+- Navigate to `/data/data/com.afora.android/`
 
 ### 3. Layout Inspector
 

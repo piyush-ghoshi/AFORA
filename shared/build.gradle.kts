@@ -103,7 +103,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.academia.shared"
+    namespace = "com.afora.shared"
     compileSdk = 34
     
     defaultConfig {

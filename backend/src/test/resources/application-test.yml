@@ -20,4 +20,4 @@ server:
 logging:
   level:
     root: WARN
-    com.academia.backend: INFO
+    com.afora.backend: INFO

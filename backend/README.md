@@ -83,7 +83,7 @@ Expected response:
 ```
 backend/
 ├── src/main/kotlin/com/academia/backend/
-│   ├── AcademiaBackendApplication.kt
+│   ├── AforaBackendApplication.kt
 │   ├── common/              # Shared utilities
 │   │   ├── config/          # WebConfig, SecurityConfig
 │   │   ├── dto/             # ApiResponse, PagedResponse
