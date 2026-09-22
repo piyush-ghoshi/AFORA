@@ -1,5 +1,7 @@
 package com.academia.android.ui.auth.login
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
@@ -11,26 +13,23 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.academia.android.R
 import com.academia.android.ui.auth.AuthUiState
 import com.academia.android.ui.auth.LoginFormState
 import com.academia.android.ui.auth.components.EmailTextField
+import com.academia.android.ui.auth.components.GoogleSignInButton
 import com.academia.android.ui.auth.components.PasswordTextField
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 
 /**
- * Login screen with email/password authentication.
- * 
- * Features:
- * - Email and password input fields
- * - Remember me checkbox
- * - Forgot password link
- * - Login button with loading state
- * - Create account link
- * - Error messages
+ * Login screen with email/password and Google authentication.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,13 +40,29 @@ fun LoginScreen(
     onPasswordChange: (String) -> Unit,
     onRememberMeChange: (Boolean) -> Unit,
     onLoginClick: () -> Unit,
+    onGoogleSignInClick: (String) -> Unit,
     onForgotPasswordClick: () -> Unit,
     onCreateAccountClick: () -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
     val scrollState = rememberScrollState()
+
+    val googleLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            account?.idToken?.let { idToken ->
+                onGoogleSignInClick(idToken)
+            }
+        } catch (_: ApiException) {
+            // Cancelled or error
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -228,6 +243,23 @@ fun LoginScreen(
                 Divider(modifier = Modifier.weight(1f))
             }
             
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Google Sign-In button
+            GoogleSignInButton(
+                onClick = {
+                    val webClientId = context.getString(R.string.default_web_client_id)
+                    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestIdToken(webClientId)
+                        .requestEmail()
+                        .build()
+                    val googleSignInClient = GoogleSignIn.getClient(context, gso)
+                    googleLauncher.launch(googleSignInClient.signInIntent)
+                },
+                enabled = uiState !is AuthUiState.Loading,
+                text = "Sign in with Google"
+            )
+
             Spacer(modifier = Modifier.height(24.dp))
             
             // Create account link

@@ -43,12 +43,15 @@ class FirebaseAuthRepository(
                 val firebaseUser = authResult.user
                     ?: return@withTimeout Result.Error(AppError.AuthenticationError("Login failed"))
 
-                // Get Firebase ID token
-                val idToken = firebaseUser.getIdToken(false).await().token
+                // Get Firebase ID token & claims
+                val tokenResult = firebaseUser.getIdToken(false).await()
+                val idToken = tokenResult.token
                     ?: return@withTimeout Result.Error(AppError.AuthenticationError("Failed to get ID token"))
 
+                val roleClaim = tokenResult.claims["role"] as? String ?: "STUDENT"
+
                 // Map to domain User
-                val user = mapFirebaseUserToDomainUser(firebaseUser)
+                val user = mapFirebaseUserToDomainUser(firebaseUser, roleClaim)
 
                 Result.Success(
                     AuthResult(
@@ -114,6 +117,40 @@ class FirebaseAuthRepository(
     }
 
     /**
+     * Sign in or register with Google credential.
+     */
+    override suspend fun signInWithGoogle(idToken: String): Result<AuthResult> {
+        return try {
+            withTimeout(TIMEOUT_MS) {
+                val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(idToken, null)
+                val authResult = firebaseAuth.signInWithCredential(credential).await()
+
+                val firebaseUser = authResult.user
+                    ?: return@withTimeout Result.Error(AppError.AuthenticationError("Google Sign-In failed"))
+
+                val tokenResult = firebaseUser.getIdToken(false).await()
+                val firebaseIdToken = tokenResult.token
+                    ?: return@withTimeout Result.Error(AppError.AuthenticationError("Failed to get ID token"))
+
+                val roleClaim = tokenResult.claims["role"] as? String ?: "STUDENT"
+                val user = mapFirebaseUserToDomainUser(firebaseUser, roleClaim)
+
+                Result.Success(
+                    AuthResult(
+                        user = user,
+                        idToken = firebaseIdToken,
+                        expiresIn = 3600L
+                    )
+                )
+            }
+        } catch (e: FirebaseAuthException) {
+            Result.Error(mapFirebaseAuthException(e))
+        } catch (e: Exception) {
+            Result.Error(AppError.NetworkError("Google Sign-In failed: ${e.message}"))
+        }
+    }
+
+    /**
      * Logout (sign out from Firebase).
      */
     override suspend fun logout(): Result<Unit> {
@@ -135,7 +172,9 @@ class FirebaseAuthRepository(
         return try {
             // Reload user to get latest data
             firebaseUser.reload().await()
-            val user = mapFirebaseUserToDomainUser(firebaseUser)
+            val tokenResult = firebaseUser.getIdToken(false).await()
+            val roleClaim = tokenResult.claims["role"] as? String ?: "STUDENT"
+            val user = mapFirebaseUserToDomainUser(firebaseUser, roleClaim)
             Result.Success(user)
         } catch (e: Exception) {
             Result.Error(AppError.NetworkError("Failed to get current user: ${e.message}"))

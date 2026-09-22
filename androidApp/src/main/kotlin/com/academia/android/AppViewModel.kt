@@ -3,7 +3,7 @@ package com.academia.android
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.academia.android.navigation.AUTH_GRAPH_ROUTE
-import com.academia.android.navigation.MainRoute
+import com.academia.android.navigation.MAIN_GRAPH_ROUTE
 import com.academia.shared.data.repository.AuthRepository
 import com.academia.shared.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,13 +16,10 @@ import javax.inject.Inject
 /**
  * App-level ViewModel.
  *
- * Resolves the initial navigation destination based on the current auth state
- * and the authenticated user's role.
- *
- *  null            → resolving (show nothing / splash)
- *  AUTH_GRAPH_ROUTE → user is not logged in
- *  StudentDashboard.route → STUDENT role
- *  TeacherDashboard.route → TEACHER role
+ * Resolves the initial navigation graph route based on auth state:
+ *  - null             → resolving
+ *  - AUTH_GRAPH_ROUTE → user is not logged in
+ *  - MAIN_GRAPH_ROUTE → user is logged in
  */
 @HiltViewModel
 class AppViewModel @Inject constructor(
@@ -31,6 +28,9 @@ class AppViewModel @Inject constructor(
 
     private val _startDestination = MutableStateFlow<String?>(null)
     val startDestination: StateFlow<String?> = _startDestination.asStateFlow()
+
+    private val _userRole = MutableStateFlow<String?>("STUDENT")
+    val userRole: StateFlow<String?> = _userRole.asStateFlow()
 
     init {
         resolveStartDestination()
@@ -45,14 +45,10 @@ class AppViewModel @Inject constructor(
 
             when (val result = authRepository.getCurrentUser()) {
                 is Result.Success -> {
-                    _startDestination.value = when (result.data.role.uppercase()) {
-                        "TEACHER" -> MainRoute.TeacherDashboard.route
-                        "STUDENT" -> MainRoute.StudentDashboard.route
-                        else      -> AUTH_GRAPH_ROUTE
-                    }
+                    _userRole.value = result.data.role.uppercase()
+                    _startDestination.value = MAIN_GRAPH_ROUTE
                 }
                 is Result.Error -> {
-                    // Token may be stale — send back to auth
                     _startDestination.value = AUTH_GRAPH_ROUTE
                 }
             }

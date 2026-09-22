@@ -1,6 +1,5 @@
 package com.academia.android.ui.auth.login
 
-import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.academia.android.ui.auth.AuthUiEvent
@@ -14,6 +13,8 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private val EMAIL_REGEX = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
 
 /**
  * ViewModel for login screen.
@@ -95,6 +96,27 @@ class LoginViewModel @Inject constructor(
     }
 
     /**
+     * Perform login with Google ID token.
+     */
+    fun onGoogleSignIn(idToken: String) {
+        viewModelScope.launch {
+            _uiState.value = AuthUiState.Loading
+
+            when (val result = authRepository.signInWithGoogle(idToken)) {
+                is Result.Success -> {
+                    _uiState.value = AuthUiState.Success(result.data.user)
+                    _events.send(AuthUiEvent.NavigateToHome)
+                }
+                is Result.Error -> {
+                    _uiState.value = AuthUiState.Error(
+                        result.error.message ?: "Google Sign-In failed. Please try again."
+                    )
+                }
+            }
+        }
+    }
+
+    /**
      * Validate form fields.
      */
     private fun validateForm() {
@@ -102,7 +124,7 @@ class LoginViewModel @Inject constructor(
         
         val emailError = when {
             form.email.isBlank() -> "Email is required"
-            !Patterns.EMAIL_ADDRESS.matcher(form.email).matches() -> "Invalid email format"
+            !EMAIL_REGEX.matches(form.email) -> "Invalid email format"
             else -> null
         }
         

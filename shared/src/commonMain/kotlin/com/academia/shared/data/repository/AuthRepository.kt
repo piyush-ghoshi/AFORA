@@ -35,6 +35,13 @@ interface AuthRepository {
     ): Result<AuthResult>
     
     /**
+     * Sign in or register with Google ID token.
+     * @param idToken Google ID token from Google Sign-In SDK
+     * @return AuthResult with user and Firebase ID token
+     */
+    suspend fun signInWithGoogle(idToken: String): Result<AuthResult>
+    
+    /**
      * Logout current user (sign out from Firebase).
      */
     suspend fun logout(): Result<Unit>

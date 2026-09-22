@@ -78,6 +78,7 @@ fun NavGraphBuilder.authNavGraph(
                 onPasswordChange = viewModel::onPasswordChange,
                 onRememberMeChange = viewModel::onRememberMeChange,
                 onLoginClick = viewModel::onLoginClick,
+                onGoogleSignInClick = viewModel::onGoogleSignIn,
                 onForgotPasswordClick = { /* Phase A3 */ },
                 onCreateAccountClick = {
                     navController.navigate(AuthRoute.Register.route)
@@ -114,6 +115,7 @@ fun NavGraphBuilder.authNavGraph(
                 onPasswordChange = viewModel::onPasswordChange,
                 onConfirmPasswordChange = viewModel::onConfirmPasswordChange,
                 onRegisterClick = viewModel::onRegisterClick,
+                onGoogleSignInClick = viewModel::onGoogleSignIn,
                 onSignInClick = {
                     navController.navigate(AuthRoute.Login.route) {
                         popUpTo(AuthRoute.Register.route) { inclusive = true }

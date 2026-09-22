@@ -21,4 +21,7 @@
     <string name="logout">Logout</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
+
+    <!-- Google Auth -->
+    <string name="default_web_client_id">997729578808-a80m6354eep2690rfv1amkehq012mb6v.apps.googleusercontent.com</string>
 </resources>

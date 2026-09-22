@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -43,15 +42,15 @@ class MainActivity : ComponentActivity() {
  * Root composable.
  *
  * Delegates start-destination resolution to [AppViewModel]:
- *  - Not authenticated → auth graph (Welcome screen)
- *  - STUDENT           → main graph → StudentDashboard
- *  - TEACHER           → main graph → TeacherDashboard
+ *  - Not authenticated → AUTH_GRAPH_ROUTE ("auth")
+ *  - Authenticated     → MAIN_GRAPH_ROUTE ("main")
  */
 @Composable
 fun AforaApp() {
     val navController = rememberNavController()
     val appViewModel: AppViewModel = hiltViewModel()
     val startDest by appViewModel.startDestination.collectAsState()
+    val userRole by appViewModel.userRole.collectAsState()
 
     // Wait until the start destination is resolved before rendering NavHost
     val resolvedStart = startDest ?: return
@@ -68,19 +67,19 @@ fun AforaApp() {
             authNavGraph(
                 navController = navController,
                 onAuthSuccess = {
-                    // Re-resolve role after successful login
                     appViewModel.resolveStartDestination()
-                    // AppViewModel emits new startDestination which triggers recompose
-                    // but we also need to navigate — collect via effect below
+                    navController.navigate(MAIN_GRAPH_ROUTE) {
+                        popUpTo(AUTH_GRAPH_ROUTE) { inclusive = true }
+                    }
                 }
             )
 
             // Main app flow (role-based dashboards + profile)
             mainNavGraph(
                 navController = navController,
-                startRoute = when (resolvedStart) {
-                    MAIN_GRAPH_ROUTE -> MainRoute.TeacherDashboard.route  // fallback
-                    else -> resolvedStart
+                startRoute = when (userRole?.uppercase()) {
+                    "TEACHER" -> MainRoute.TeacherDashboard.route
+                    else -> MainRoute.StudentDashboard.route
                 },
                 onLogout = {
                     appViewModel.logout()
@@ -89,18 +88,6 @@ fun AforaApp() {
                     }
                 }
             )
-        }
-
-        // After auth success, navigate to the correct main destination
-        LaunchedEffect(startDest) {
-            val dest = startDest ?: return@LaunchedEffect
-            if (dest == MainRoute.StudentDashboard.route ||
-                dest == MainRoute.TeacherDashboard.route
-            ) {
-                navController.navigate(MAIN_GRAPH_ROUTE) {
-                    popUpTo(AUTH_GRAPH_ROUTE) { inclusive = true }
-                }
-            }
         }
     }
 }

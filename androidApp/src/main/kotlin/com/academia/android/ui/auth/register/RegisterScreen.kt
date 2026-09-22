@@ -1,5 +1,7 @@
 package com.academia.android.ui.auth.register
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
@@ -13,29 +15,26 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.academia.android.R
 import com.academia.android.ui.auth.AuthUiState
 import com.academia.android.ui.auth.RegisterFormState
 import com.academia.android.ui.auth.UserRole
 import com.academia.android.ui.auth.components.EmailTextField
+import com.academia.android.ui.auth.components.GoogleSignInButton
 import com.academia.android.ui.auth.components.NameTextField
 import com.academia.android.ui.auth.components.PasswordTextField
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 
 /**
- * Registration screen with role selection.
- * 
- * Features:
- * - Role selection (Student/Teacher)
- * - Name fields (first and last)
- * - Email input
- * - Password and confirm password
- * - Terms acceptance
- * - Create account button with loading
- * - Sign in link
+ * Registration screen with role selection and Google Sign-In.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,12 +48,28 @@ fun RegisterScreen(
     onPasswordChange: (String) -> Unit,
     onConfirmPasswordChange: (String) -> Unit,
     onRegisterClick: () -> Unit,
+    onGoogleSignInClick: (String) -> Unit,
     onSignInClick: () -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
     val scrollState = rememberScrollState()
+
+    val googleLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            account?.idToken?.let { idToken ->
+                onGoogleSignInClick(idToken)
+            }
+        } catch (_: ApiException) {
+            // Cancelled or error
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -274,6 +289,40 @@ fun RegisterScreen(
                     )
                 }
             }
+            
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Divider
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Divider(modifier = Modifier.weight(1f))
+                Text(
+                    text = "OR",
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Divider(modifier = Modifier.weight(1f))
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Google Sign-Up button
+            GoogleSignInButton(
+                onClick = {
+                    val webClientId = context.getString(R.string.default_web_client_id)
+                    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestIdToken(webClientId)
+                        .requestEmail()
+                        .build()
+                    val googleSignInClient = GoogleSignIn.getClient(context, gso)
+                    googleLauncher.launch(googleSignInClient.signInIntent)
+                },
+                enabled = uiState !is AuthUiState.Loading,
+                text = "Sign up with Google"
+            )
             
             Spacer(modifier = Modifier.height(24.dp))
             
