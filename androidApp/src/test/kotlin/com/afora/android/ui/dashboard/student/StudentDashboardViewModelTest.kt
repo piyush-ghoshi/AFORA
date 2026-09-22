@@ -107,7 +107,7 @@ class StudentDashboardViewModelTest {
         
         // Setup: dashboard data fails
         fakeDashboardRepository.studentDashboardResult = Result.Error(
-            AppError.ServerError("Server error")
+            AppError.NetworkError("Server error")
         )
 
         viewModel = buildViewModel()
