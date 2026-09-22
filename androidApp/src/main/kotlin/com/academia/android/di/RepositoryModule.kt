@@ -1,5 +1,8 @@
 package com.academia.android.di
 
+import android.content.Context
+import com.academia.android.data.UserPreferences
+import com.academia.android.data.UserPreferencesStore
 import com.academia.shared.data.api.ApiClient
 import com.academia.shared.data.repository.AuthRepository
 import com.academia.shared.data.repository.FirebaseAuthRepository
@@ -15,6 +18,7 @@ import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.tasks.await
 import javax.inject.Singleton
@@ -31,6 +35,12 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
+
+    @Provides
+    @Singleton
+    fun provideUserPreferences(
+        @ApplicationContext context: Context
+    ): UserPreferencesStore = UserPreferences(context)
 
     /**
      * ApiClient with Firebase token auto-injection.

@@ -8,7 +8,6 @@ import com.academia.shared.util.AppError
 import com.academia.shared.util.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -27,12 +26,14 @@ class LoginViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val fakeAuthRepository = FakeAuthRepository()
+    private val fakeUserRepository  = FakeUserRepository()
+    private val fakeUserPreferences = FakeUserPreferences()
     private lateinit var viewModel: LoginViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = LoginViewModel(fakeAuthRepository)
+        viewModel = LoginViewModel(fakeAuthRepository, fakeUserRepository, fakeUserPreferences)
     }
 
     @After
@@ -61,7 +62,7 @@ class LoginViewModelTest {
     @Test
     fun `short password sets password error`() {
         viewModel.onEmailChange("test@example.com")
-        viewModel.onPasswordChange("12345") // less than 6 chars
+        viewModel.onPasswordChange("12345")
 
         val formState = viewModel.formState.value
         assertNull(formState.validation.emailError)
@@ -82,13 +83,12 @@ class LoginViewModelTest {
 
     @Test
     fun `onLoginClick success updates uiState to Success`() = runTest {
+        val user = User(1, "uid123", "test@example.com", "John", "Doe", "STUDENT")
         fakeAuthRepository.loginResult = Result.Success(
-            AuthResult(
-                user = User(1, "uid123", "test@example.com", "John", "Doe", "STUDENT"),
-                idToken = "token123",
-                expiresIn = 3600L
-            )
+            AuthResult(user = user, idToken = "token123", expiresIn = 3600L)
         )
+        // Backend sync returns the same user
+        fakeUserRepository.syncResult = Result.Success(user)
 
         viewModel.onEmailChange("test@example.com")
         viewModel.onPasswordChange("123456")
@@ -97,8 +97,7 @@ class LoginViewModelTest {
 
         val uiState = viewModel.uiState.value
         assertTrue(uiState is AuthUiState.Success)
-        val successUser = (uiState as AuthUiState.Success).user
-        assertEquals("test@example.com", successUser.email)
+        assertEquals("test@example.com", (uiState as AuthUiState.Success).user.email)
     }
 
     @Test
@@ -119,69 +118,42 @@ class LoginViewModelTest {
 
     @Test
     fun `onGoogleSignIn success updates uiState to Success`() = runTest {
+        val user = User(1, "google_uid", "google@example.com", "Google", "User", "STUDENT")
         fakeAuthRepository.googleSignInResult = Result.Success(
-            AuthResult(
-                user = User(1, "google_uid", "google@example.com", "Google", "User", "STUDENT"),
-                idToken = "google_token",
-                expiresIn = 3600L
-            )
+            AuthResult(user = user, idToken = "google_token", expiresIn = 3600L)
         )
+        fakeUserRepository.syncResult = Result.Success(user)
 
         viewModel.onGoogleSignIn("google_id_token")
         testDispatcher.scheduler.advanceUntilIdle()
 
         val uiState = viewModel.uiState.value
         assertTrue(uiState is AuthUiState.Success)
-        val successUser = (uiState as AuthUiState.Success).user
-        assertEquals("google@example.com", successUser.email)
+        assertEquals("google@example.com", (uiState as AuthUiState.Success).user.email)
     }
 }
 
+// ── Shared fakes ──────────────────────────────────────────────────────────────
+
 /**
- * Fake AuthRepository implementation for testing.
+ * Fake AuthRepository shared by all auth-related tests.
  */
 class FakeAuthRepository : AuthRepository {
     var isAuthenticatedResult = false
-    var loginResult: Result<AuthResult> = Result.Error(AppError.AuthenticationError("Not set"))
-    var registerResult: Result<AuthResult> = Result.Error(AppError.AuthenticationError("Not set"))
-    var currentUserResult: Result<User> = Result.Error(AppError.AuthenticationError("Not authenticated"))
-
+    var loginResult: Result<AuthResult>      = Result.Error(AppError.AuthenticationError("Not set"))
+    var registerResult: Result<AuthResult>   = Result.Error(AppError.AuthenticationError("Not set"))
     var googleSignInResult: Result<AuthResult> = Result.Error(AppError.AuthenticationError("Not set"))
+    var currentUserResult: Result<com.academia.shared.domain.model.User> =
+        Result.Error(AppError.AuthenticationError("Not authenticated"))
 
-    override suspend fun login(email: String, password: String): Result<AuthResult> = loginResult
-
-    override suspend fun register(
-        email: String,
-        password: String,
-        firstName: String,
-        lastName: String,
-        role: String
-    ): Result<AuthResult> = registerResult
-
-    override suspend fun signInWithGoogle(idToken: String): Result<AuthResult> = googleSignInResult
-
-    override suspend fun logout(): Result<Unit> {
-        isAuthenticatedResult = false
-        return Result.Success(Unit)
-    }
-
-    override suspend fun getCurrentUser(): Result<User> = currentUserResult
-
-    override suspend fun getIdToken(forceRefresh: Boolean): Result<String> {
-        return Result.Success("fake-token")
-    }
-
-    override suspend fun isAuthenticated(): Boolean = isAuthenticatedResult
-
-    override suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
-        return Result.Success(Unit)
-    }
-
-    override suspend fun updatePassword(currentPassword: String, newPassword: String): Result<Unit> {
-        return Result.Success(Unit)
-    }
-
-    override suspend fun reauthenticate(password: String): Result<Unit> {
-        return Result.Success(Unit)
-    }
+    override suspend fun login(email: String, password: String) = loginResult
+    override suspend fun register(email: String, password: String, firstName: String, lastName: String, role: String) = registerResult
+    override suspend fun signInWithGoogle(idToken: String) = googleSignInResult
+    override suspend fun logout(): Result<Unit> { isAuthenticatedResult = false; return Result.Success(Unit) }
+    override suspend fun getCurrentUser() = currentUserResult
+    override suspend fun getIdToken(forceRefresh: Boolean) = Result.Success("fake-token")
+    override suspend fun isAuthenticated() = isAuthenticatedResult
+    override suspend fun sendPasswordResetEmail(email: String) = Result.Success(Unit)
+    override suspend fun updatePassword(currentPassword: String, newPassword: String) = Result.Success(Unit)
+    override suspend fun reauthenticate(password: String) = Result.Success(Unit)
 }

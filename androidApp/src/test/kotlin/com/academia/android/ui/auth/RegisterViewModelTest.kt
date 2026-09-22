@@ -23,14 +23,16 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class RegisterViewModelTest {
 
-    private val testDispatcher = StandardTestDispatcher()
-    private val fakeAuthRepository = FakeAuthRepository()
+    private val testDispatcher      = StandardTestDispatcher()
+    private val fakeAuthRepository  = FakeAuthRepository()
+    private val fakeUserRepository  = FakeUserRepository()
+    private val fakeUserPreferences = FakeUserPreferences()
     private lateinit var viewModel: RegisterViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = RegisterViewModel(fakeAuthRepository)
+        viewModel = RegisterViewModel(fakeAuthRepository, fakeUserRepository, fakeUserPreferences)
     }
 
     @After
@@ -56,12 +58,11 @@ class RegisterViewModelTest {
         viewModel.onFirstNameChange("Jane")
         viewModel.onLastNameChange("Doe")
         viewModel.onEmailChange("jane.doe@example.com")
-        viewModel.onPasswordChange("weak") // no uppercase, digit, or 8 chars
+        viewModel.onPasswordChange("weak")
         viewModel.onConfirmPasswordChange("weak")
 
-        val formState = viewModel.formState.value
-        assertNotNull(formState.validation.passwordError)
-        assertFalse(formState.validation.isValid)
+        assertNotNull(viewModel.formState.value.validation.passwordError)
+        assertFalse(viewModel.formState.value.validation.isValid)
     }
 
     @Test
@@ -69,22 +70,22 @@ class RegisterViewModelTest {
         viewModel.onFirstNameChange("Jane")
         viewModel.onLastNameChange("Doe")
         viewModel.onEmailChange("jane.doe@example.com")
-        viewModel.onPasswordChange("Pass1234") // valid
+        viewModel.onPasswordChange("Pass1234")
         viewModel.onConfirmPasswordChange("Pass1234")
 
-        val formState = viewModel.formState.value
-        assertNull(formState.validation.nameError)
-        assertNull(formState.validation.emailError)
-        assertNull(formState.validation.passwordError)
-        assertTrue(formState.validation.isValid)
+        val v = viewModel.formState.value.validation
+        assertNull(v.nameError)
+        assertNull(v.emailError)
+        assertNull(v.passwordError)
+        assertTrue(v.isValid)
     }
 
     @Test
     fun `onRegisterClick success sets uiState to Success`() = runTest {
         fakeAuthRepository.registerResult = Result.Success(
             AuthResult(
-                user = User(1, "uid_jane", "jane.doe@example.com", "Jane", "Doe", "STUDENT"),
-                idToken = "token_jane",
+                user      = User(1, "uid_jane", "jane.doe@example.com", "Jane", "Doe", "STUDENT"),
+                idToken   = "token_jane",
                 expiresIn = 3600L
             )
         )
@@ -120,16 +121,15 @@ class RegisterViewModelTest {
         viewModel.onRegisterClick()
         testDispatcher.scheduler.advanceUntilIdle()
 
-        val uiState = viewModel.uiState.value
-        assertTrue(uiState is AuthUiState.Error)
+        assertTrue(viewModel.uiState.value is AuthUiState.Error)
     }
 
     @Test
     fun `onGoogleSignIn success sets uiState to Success`() = runTest {
         fakeAuthRepository.googleSignInResult = Result.Success(
             AuthResult(
-                user = User(2, "google_reg_uid", "greg@example.com", "G", "Reg", "STUDENT"),
-                idToken = "google_reg_token",
+                user      = User(2, "google_reg_uid", "greg@example.com", "G", "Reg", "STUDENT"),
+                idToken   = "google_reg_token",
                 expiresIn = 3600L
             )
         )
@@ -137,7 +137,6 @@ class RegisterViewModelTest {
         viewModel.onGoogleSignIn("google_id_token")
         testDispatcher.scheduler.advanceUntilIdle()
 
-        val uiState = viewModel.uiState.value
-        assertTrue(uiState is AuthUiState.Success)
+        assertTrue(viewModel.uiState.value is AuthUiState.Success)
     }
 }

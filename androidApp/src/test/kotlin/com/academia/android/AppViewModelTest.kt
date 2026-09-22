@@ -3,6 +3,8 @@ package com.academia.android
 import com.academia.android.navigation.AUTH_GRAPH_ROUTE
 import com.academia.android.navigation.MAIN_GRAPH_ROUTE
 import com.academia.android.ui.auth.FakeAuthRepository
+import com.academia.android.ui.auth.FakeUserPreferences
+import com.academia.android.ui.auth.FakeUserRepository
 import com.academia.shared.domain.model.User
 import com.academia.shared.util.Result
 import kotlinx.coroutines.Dispatchers
@@ -19,8 +21,10 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class AppViewModelTest {
 
-    private val testDispatcher = StandardTestDispatcher()
-    private val fakeAuthRepository = FakeAuthRepository()
+    private val testDispatcher      = StandardTestDispatcher()
+    private val fakeAuthRepository  = FakeAuthRepository()
+    private val fakeUserRepository  = FakeUserRepository()
+    private val fakeUserPreferences = FakeUserPreferences()
     private lateinit var viewModel: AppViewModel
 
     @Before
@@ -33,24 +37,29 @@ class AppViewModelTest {
         Dispatchers.resetMain()
     }
 
+    private fun buildViewModel() = AppViewModel(
+        fakeAuthRepository,
+        fakeUserRepository,
+        fakeUserPreferences
+    )
+
     @Test
     fun `when unauthenticated startDestination is AUTH_GRAPH_ROUTE`() = runTest {
         fakeAuthRepository.isAuthenticatedResult = false
 
-        viewModel = AppViewModel(fakeAuthRepository)
+        viewModel = buildViewModel()
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertEquals(AUTH_GRAPH_ROUTE, viewModel.startDestination.value)
     }
 
     @Test
-    fun `when authenticated as STUDENT startDestination is MAIN_GRAPH_ROUTE and role is STUDENT`() = runTest {
+    fun `when authenticated and DataStore has STUDENT role routes to MAIN_GRAPH_ROUTE`() = runTest {
         fakeAuthRepository.isAuthenticatedResult = true
-        fakeAuthRepository.currentUserResult = Result.Success(
-            User(1, "uid123", "student@afora.edu", "Student", "User", "STUDENT")
-        )
+        // Pre-populate DataStore cache (simulates a returning user)
+        fakeUserPreferences.saveUser("uid123", "student@afora.edu", "Student User", "STUDENT")
 
-        viewModel = AppViewModel(fakeAuthRepository)
+        viewModel = buildViewModel()
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertEquals(MAIN_GRAPH_ROUTE, viewModel.startDestination.value)
@@ -58,13 +67,11 @@ class AppViewModelTest {
     }
 
     @Test
-    fun `when authenticated as TEACHER startDestination is MAIN_GRAPH_ROUTE and role is TEACHER`() = runTest {
+    fun `when authenticated and DataStore has TEACHER role routes to MAIN_GRAPH_ROUTE`() = runTest {
         fakeAuthRepository.isAuthenticatedResult = true
-        fakeAuthRepository.currentUserResult = Result.Success(
-            User(2, "uid456", "teacher@afora.edu", "Teacher", "User", "TEACHER")
-        )
+        fakeUserPreferences.saveUser("uid456", "teacher@afora.edu", "Teacher User", "TEACHER")
 
-        viewModel = AppViewModel(fakeAuthRepository)
+        viewModel = buildViewModel()
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertEquals(MAIN_GRAPH_ROUTE, viewModel.startDestination.value)
@@ -72,18 +79,32 @@ class AppViewModelTest {
     }
 
     @Test
-    fun `logout sets startDestination to AUTH_GRAPH_ROUTE`() = runTest {
+    fun `when authenticated and DataStore empty falls back to backend profile`() = runTest {
         fakeAuthRepository.isAuthenticatedResult = true
-        fakeAuthRepository.currentUserResult = Result.Success(
-            User(1, "uid123", "student@afora.edu", "Student", "User", "STUDENT")
+        // DataStore is empty (no cached role)
+        fakeUserRepository.profileResult = Result.Success(
+            User(2, "uid456", "teacher@afora.edu", "Teacher", "User", "TEACHER")
         )
 
-        viewModel = AppViewModel(fakeAuthRepository)
+        viewModel = buildViewModel()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(MAIN_GRAPH_ROUTE, viewModel.startDestination.value)
+        assertEquals("TEACHER", viewModel.userRole.value)
+    }
+
+    @Test
+    fun `logout clears DataStore and sets startDestination to AUTH_GRAPH_ROUTE`() = runTest {
+        fakeAuthRepository.isAuthenticatedResult = true
+        fakeUserPreferences.saveUser("uid123", "student@afora.edu", "Student User", "STUDENT")
+
+        viewModel = buildViewModel()
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.logout()
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertEquals(AUTH_GRAPH_ROUTE, viewModel.startDestination.value)
+        assertEquals(null, fakeUserPreferences.getRole())  // DataStore cleared
     }
 }

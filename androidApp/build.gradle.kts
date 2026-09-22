@@ -11,6 +11,9 @@ android {
     compileSdk = 34
     
     defaultConfig {
+        // applicationId must match the package_name registered in Firebase Console
+        // and in google-services.json. The Kotlin source namespace (com.academia.android)
+        // is separate from the Firebase application ID (com.afora.android).
         applicationId = "com.afora.android"
         minSdk = 24
         targetSdk = 34
@@ -33,8 +36,7 @@ android {
         }
         debug {
             isMinifyEnabled = false
-            // Temporarily removed applicationIdSuffix to match Firebase google-services.json
-            // applicationIdSuffix = ".debug"
+            // No applicationIdSuffix — must match com.afora.android in google-services.json
         }
     }
     
@@ -127,6 +129,8 @@ dependencies {
     // Testing
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("io.mockk:mockk:1.13.8")
+    testImplementation("io.mockk:mockk-agent-jvm:1.13.8")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation(composeBom)

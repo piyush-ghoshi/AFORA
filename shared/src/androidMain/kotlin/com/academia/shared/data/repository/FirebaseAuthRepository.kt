@@ -6,36 +6,44 @@ import com.academia.shared.util.Result
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.auth.EmailAuthProvider
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
 
 /**
- * Firebase Authentication Repository implementation for Android.
- * 
- * Handles:
- * - Email/password authentication
- * - User registration
- * - Firebase ID token management
- * - Password reset
- * 
- * Phase A2: Complete Firebase auth integration.
+ * Real Firebase Authentication implementation.
+ *
+ * Flow for email/password:
+ *  register()  → Firebase createUser → updateProfile(displayName) → send email verification → return AuthResult
+ *  login()     → Firebase signIn → verify email check → fetch ID token + role claim → return AuthResult
+ *
+ * Flow for Google:
+ *  signInWithGoogle() → Firebase signInWithCredential(GoogleAuthProvider) → fetch ID token + role claim → return AuthResult
+ *
+ * Role source-of-truth:
+ *  - On register:   role is supplied by the caller (from registration form) and stored in AuthResult.user.role
+ *  - On login:      role is read from Firebase ID token custom claim "role" (set by backend after syncUser)
+ *                   Falls back to "STUDENT" if the claim is absent (first login before backend sets it)
+ *  - On Google:     same as login — custom claim, fallback STUDENT
+ *
+ * The caller (ViewModel) is responsible for calling backend /api/auth/sync after receiving AuthResult
+ * to persist the user and get the authoritative role from the DB.
  */
 class FirebaseAuthRepository(
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
 ) : AuthRepository {
 
     companion object {
-        private const val TIMEOUT_MS = 30_000L // 30 seconds
+        private const val TIMEOUT_MS = 30_000L
     }
 
-    /**
-     * Login with email and password using Firebase.
-     */
+    // ── Login ─────────────────────────────────────────────────────────────────
+
     override suspend fun login(email: String, password: String): Result<AuthResult> {
         return try {
             withTimeout(TIMEOUT_MS) {
-                // Sign in with Firebase
                 val authResult = firebaseAuth
                     .signInWithEmailAndPassword(email, password)
                     .await()
@@ -43,34 +51,42 @@ class FirebaseAuthRepository(
                 val firebaseUser = authResult.user
                     ?: return@withTimeout Result.Error(AppError.AuthenticationError("Login failed"))
 
-                // Get Firebase ID token & claims
+                // Enforce email verification
+                if (!firebaseUser.isEmailVerified) {
+                    // Re-send verification so user can try again
+                    firebaseUser.sendEmailVerification().await()
+                    return@withTimeout Result.Error(
+                        AppError.AuthenticationError(
+                            "Please verify your email before signing in. A new verification email has been sent."
+                        )
+                    )
+                }
+
                 val tokenResult = firebaseUser.getIdToken(false).await()
                 val idToken = tokenResult.token
                     ?: return@withTimeout Result.Error(AppError.AuthenticationError("Failed to get ID token"))
 
+                // Role from custom claim (set by backend after first syncUser call)
+                // Falls back to "STUDENT" on very first login before backend sync runs
                 val roleClaim = tokenResult.claims["role"] as? String ?: "STUDENT"
-
-                // Map to domain User
-                val user = mapFirebaseUserToDomainUser(firebaseUser, roleClaim)
 
                 Result.Success(
                     AuthResult(
-                        user = user,
+                        user = mapFirebaseUser(firebaseUser, roleClaim),
                         idToken = idToken,
-                        expiresIn = 3600L // Firebase tokens expire in 1 hour
+                        expiresIn = 3600L
                     )
                 )
             }
         } catch (e: FirebaseAuthException) {
-            Result.Error(mapFirebaseAuthException(e))
+            Result.Error(mapError(e))
         } catch (e: Exception) {
             Result.Error(AppError.NetworkError("Login failed: ${e.message}"))
         }
     }
 
-    /**
-     * Register new user with Firebase Authentication.
-     */
+    // ── Register ──────────────────────────────────────────────────────────────
+
     override suspend fun register(
         email: String,
         password: String,
@@ -80,7 +96,6 @@ class FirebaseAuthRepository(
     ): Result<AuthResult> {
         return try {
             withTimeout(TIMEOUT_MS) {
-                // Create user in Firebase Auth
                 val authResult = firebaseAuth
                     .createUserWithEmailAndPassword(email, password)
                     .await()
@@ -88,41 +103,41 @@ class FirebaseAuthRepository(
                 val firebaseUser = authResult.user
                     ?: return@withTimeout Result.Error(AppError.AuthenticationError("Registration failed"))
 
-                // Update profile with display name
-                val profileUpdates = UserProfileChangeRequest.Builder()
-                    .setDisplayName("$firstName $lastName")
-                    .build()
-                firebaseUser.updateProfile(profileUpdates).await()
+                // Set display name so mapFirebaseUser can parse firstName/lastName
+                firebaseUser.updateProfile(
+                    UserProfileChangeRequest.Builder()
+                        .setDisplayName("$firstName $lastName")
+                        .build()
+                ).await()
 
-                // Get Firebase ID token
+                // Send email verification — user must verify before they can log in
+                firebaseUser.sendEmailVerification().await()
+
+                // Get ID token immediately (used for the backend sync call)
                 val idToken = firebaseUser.getIdToken(false).await().token
                     ?: return@withTimeout Result.Error(AppError.AuthenticationError("Failed to get ID token"))
 
-                // Map to domain User (role will be set by backend)
-                val user = mapFirebaseUserToDomainUser(firebaseUser, role)
-
                 Result.Success(
                     AuthResult(
-                        user = user,
+                        user = mapFirebaseUser(firebaseUser, role),
                         idToken = idToken,
                         expiresIn = 3600L
                     )
                 )
             }
         } catch (e: FirebaseAuthException) {
-            Result.Error(mapFirebaseAuthException(e))
+            Result.Error(mapError(e))
         } catch (e: Exception) {
             Result.Error(AppError.NetworkError("Registration failed: ${e.message}"))
         }
     }
 
-    /**
-     * Sign in or register with Google credential.
-     */
+    // ── Google Sign-In ────────────────────────────────────────────────────────
+
     override suspend fun signInWithGoogle(idToken: String): Result<AuthResult> {
         return try {
             withTimeout(TIMEOUT_MS) {
-                val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(idToken, null)
+                val credential = GoogleAuthProvider.getCredential(idToken, null)
                 val authResult = firebaseAuth.signInWithCredential(credential).await()
 
                 val firebaseUser = authResult.user
@@ -133,26 +148,24 @@ class FirebaseAuthRepository(
                     ?: return@withTimeout Result.Error(AppError.AuthenticationError("Failed to get ID token"))
 
                 val roleClaim = tokenResult.claims["role"] as? String ?: "STUDENT"
-                val user = mapFirebaseUserToDomainUser(firebaseUser, roleClaim)
 
                 Result.Success(
                     AuthResult(
-                        user = user,
+                        user = mapFirebaseUser(firebaseUser, roleClaim),
                         idToken = firebaseIdToken,
                         expiresIn = 3600L
                     )
                 )
             }
         } catch (e: FirebaseAuthException) {
-            Result.Error(mapFirebaseAuthException(e))
+            Result.Error(mapError(e))
         } catch (e: Exception) {
             Result.Error(AppError.NetworkError("Google Sign-In failed: ${e.message}"))
         }
     }
 
-    /**
-     * Logout (sign out from Firebase).
-     */
+    // ── Logout ────────────────────────────────────────────────────────────────
+
     override suspend fun logout(): Result<Unit> {
         return try {
             firebaseAuth.signOut()
@@ -162,53 +175,39 @@ class FirebaseAuthRepository(
         }
     }
 
-    /**
-     * Get current authenticated user from Firebase.
-     */
+    // ── Current user ──────────────────────────────────────────────────────────
+
     override suspend fun getCurrentUser(): Result<User> {
         val firebaseUser = firebaseAuth.currentUser
             ?: return Result.Error(AppError.AuthenticationError("Not authenticated"))
 
         return try {
-            // Reload user to get latest data
             firebaseUser.reload().await()
             val tokenResult = firebaseUser.getIdToken(false).await()
             val roleClaim = tokenResult.claims["role"] as? String ?: "STUDENT"
-            val user = mapFirebaseUserToDomainUser(firebaseUser, roleClaim)
-            Result.Success(user)
+            Result.Success(mapFirebaseUser(firebaseUser, roleClaim))
         } catch (e: Exception) {
             Result.Error(AppError.NetworkError("Failed to get current user: ${e.message}"))
         }
     }
 
-    /**
-     * Get Firebase ID token (auto-refreshed if expired).
-     */
     override suspend fun getIdToken(forceRefresh: Boolean): Result<String> {
         val firebaseUser = firebaseAuth.currentUser
             ?: return Result.Error(AppError.AuthenticationError("Not authenticated"))
 
         return try {
-            val tokenResult = firebaseUser.getIdToken(forceRefresh).await()
-            val token = tokenResult.token
+            val token = firebaseUser.getIdToken(forceRefresh).await().token
                 ?: return Result.Error(AppError.AuthenticationError("Failed to get ID token"))
-            
             Result.Success(token)
         } catch (e: Exception) {
             Result.Error(AppError.NetworkError("Failed to get ID token: ${e.message}"))
         }
     }
 
-    /**
-     * Check if user is authenticated.
-     */
-    override suspend fun isAuthenticated(): Boolean {
-        return firebaseAuth.currentUser != null
-    }
+    override suspend fun isAuthenticated(): Boolean = firebaseAuth.currentUser != null
 
-    /**
-     * Send password reset email.
-     */
+    // ── Password management ───────────────────────────────────────────────────
+
     override suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
         return try {
             withTimeout(TIMEOUT_MS) {
@@ -216,96 +215,88 @@ class FirebaseAuthRepository(
                 Result.Success(Unit)
             }
         } catch (e: FirebaseAuthException) {
-            Result.Error(mapFirebaseAuthException(e))
+            Result.Error(mapError(e))
         } catch (e: Exception) {
             Result.Error(AppError.NetworkError("Failed to send reset email: ${e.message}"))
         }
     }
 
-    /**
-     * Update user password.
-     */
     override suspend fun updatePassword(currentPassword: String, newPassword: String): Result<Unit> {
         val firebaseUser = firebaseAuth.currentUser
             ?: return Result.Error(AppError.AuthenticationError("Not authenticated"))
 
         return try {
             withTimeout(TIMEOUT_MS) {
-                // Re-authenticate first
-                reauthenticate(currentPassword).let { result ->
-                    if (result is Result.Error) return@withTimeout result
-                }
+                // Must re-authenticate before changing password
+                val reauthResult = reauthenticate(currentPassword)
+                if (reauthResult is Result.Error) return@withTimeout reauthResult
 
-                // Update password
                 firebaseUser.updatePassword(newPassword).await()
                 Result.Success(Unit)
             }
         } catch (e: FirebaseAuthException) {
-            Result.Error(mapFirebaseAuthException(e))
+            Result.Error(mapError(e))
         } catch (e: Exception) {
             Result.Error(AppError.NetworkError("Failed to update password: ${e.message}"))
         }
     }
 
-    /**
-     * Re-authenticate user (required for sensitive operations).
-     */
     override suspend fun reauthenticate(password: String): Result<Unit> {
         val firebaseUser = firebaseAuth.currentUser
             ?: return Result.Error(AppError.AuthenticationError("Not authenticated"))
-
         val email = firebaseUser.email
             ?: return Result.Error(AppError.AuthenticationError("Email not available"))
 
         return try {
             withTimeout(TIMEOUT_MS) {
-                val credential = com.google.firebase.auth.EmailAuthProvider
-                    .getCredential(email, password)
-                firebaseUser.reauthenticate(credential).await()
+                firebaseUser.reauthenticate(
+                    EmailAuthProvider.getCredential(email, password)
+                ).await()
                 Result.Success(Unit)
             }
         } catch (e: FirebaseAuthException) {
-            Result.Error(mapFirebaseAuthException(e))
+            Result.Error(mapError(e))
         } catch (e: Exception) {
             Result.Error(AppError.NetworkError("Re-authentication failed: ${e.message}"))
         }
     }
 
-    /**
-     * Map Firebase user to domain User model.
-     */
-    private fun mapFirebaseUserToDomainUser(firebaseUser: FirebaseUser, role: String = "STUDENT"): User {
-        // Parse display name
-        val displayName = firebaseUser.displayName ?: ""
-        val nameParts = displayName.split(" ", limit = 2)
-        val firstName = nameParts.getOrNull(0) ?: ""
-        val lastName = nameParts.getOrNull(1) ?: ""
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
+    private fun mapFirebaseUser(user: FirebaseUser, role: String): User {
+        val displayName = user.displayName?.trim() ?: ""
+        val parts = displayName.split(" ", limit = 2)
         return User(
-            id = 0, // Will be set by backend
-            firebaseUid = firebaseUser.uid,
-            email = firebaseUser.email ?: "",
-            firstName = firstName,
-            lastName = lastName,
+            id = 0,
+            firebaseUid = user.uid,
+            email = user.email ?: "",
+            firstName = parts.getOrElse(0) { "" },
+            lastName = parts.getOrElse(1) { "" },
             role = role,
-            profilePictureUrl = firebaseUser.photoUrl?.toString()
+            profilePictureUrl = user.photoUrl?.toString(),
+            isActive = true
         )
     }
 
     /**
-     * Map Firebase auth exceptions to domain errors.
+     * Maps Firebase error codes to user-friendly domain errors.
+     * Firebase SDK (26+) uses getErrorCode() which returns strings like "ERROR_USER_NOT_FOUND".
      */
-    private fun mapFirebaseAuthException(exception: FirebaseAuthException): AppError {
-        return when (exception.errorCode) {
-            "ERROR_INVALID_EMAIL" -> AppError.ValidationError(listOf("Invalid email format"))
-            "ERROR_WRONG_PASSWORD" -> AppError.AuthenticationError("Invalid password")
-            "ERROR_USER_NOT_FOUND" -> AppError.AuthenticationError("User not found")
-            "ERROR_USER_DISABLED" -> AppError.AuthenticationError("Account has been disabled")
-            "ERROR_EMAIL_ALREADY_IN_USE" -> AppError.ValidationError(listOf("Email already in use"))
-            "ERROR_WEAK_PASSWORD" -> AppError.ValidationError(listOf("Password is too weak"))
-            "ERROR_NETWORK_REQUEST_FAILED" -> AppError.NetworkError("Network error")
-            "ERROR_TOO_MANY_REQUESTS" -> AppError.AuthenticationError("Too many requests. Try again later")
-            else -> AppError.UnknownError("Authentication error: ${exception.message}")
+    private fun mapError(e: FirebaseAuthException): AppError {
+        return when (e.errorCode) {
+            "ERROR_INVALID_EMAIL"           -> AppError.ValidationError(listOf("Invalid email address"))
+            "ERROR_WRONG_PASSWORD",
+            "ERROR_INVALID_CREDENTIAL"      -> AppError.AuthenticationError("Incorrect email or password")
+            "ERROR_USER_NOT_FOUND"          -> AppError.AuthenticationError("No account found with this email")
+            "ERROR_USER_DISABLED"           -> AppError.AuthenticationError("This account has been disabled")
+            "ERROR_EMAIL_ALREADY_IN_USE"    -> AppError.ValidationError(listOf("An account with this email already exists"))
+            "ERROR_WEAK_PASSWORD"           -> AppError.ValidationError(listOf("Password is too weak"))
+            "ERROR_NETWORK_REQUEST_FAILED"  -> AppError.NetworkError("Network error. Check your connection.")
+            "ERROR_TOO_MANY_REQUESTS"       -> AppError.AuthenticationError("Too many attempts. Try again later.")
+            "ERROR_OPERATION_NOT_ALLOWED"   -> AppError.AuthenticationError("Sign-in method not enabled")
+            "ERROR_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL" ->
+                AppError.AuthenticationError("An account already exists with a different sign-in method")
+            else -> AppError.AuthenticationError(e.message ?: "Authentication failed")
         }
     }
 }

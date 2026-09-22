@@ -5,6 +5,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
 import org.slf4j.LoggerFactory
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.ResourceLoader
@@ -13,13 +14,12 @@ import javax.annotation.PostConstruct
 
 /**
  * Firebase Admin SDK Configuration.
- * 
- * Initializes Firebase Admin SDK for:
- * - Token verification
- * - User management
- * - Custom token generation (future)
+ *
+ * Initializes Firebase Admin SDK for token verification and user management.
+ * Reads the service account key from application.yml → firebase.service-account-key.
  */
 @Configuration
+@EnableConfigurationProperties(FirebaseProperties::class)
 class FirebaseConfig(
     private val firebaseProperties: FirebaseProperties,
     private val resourceLoader: ResourceLoader
