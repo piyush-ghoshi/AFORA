@@ -49,9 +49,9 @@ class TeacherDashboardViewModel @Inject constructor(
 
             val user = (userResult as Result.Success).data
             
-            // Extract teacherId from user (assuming user.id is the teacher ID for now)
-            // In a real implementation, you'd have user.teacherId or similar
-            val teacherId = user.id
+            // Use teacherId from the nested teacher profile; fall back to user.id if not yet
+            // populated (e.g. during onboarding before profile is fully created).
+            val teacherId = user.teacherId ?: user.id
 
             // Now fetch dashboard stats (defaults to today's date)
             when (val statsResult = dashboardRepository.getTeacherDashboard(teacherId)) {

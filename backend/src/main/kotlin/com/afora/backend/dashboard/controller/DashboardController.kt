@@ -22,7 +22,7 @@ import java.time.LocalDate
  * Future phases will integrate with real repositories.
  */
 @RestController
-@RequestMapping("/api/dashboard")
+@RequestMapping("/dashboard")
 class DashboardController(
     private val dashboardService: DashboardService,
     private val userRepository: UserRepository

@@ -80,12 +80,14 @@ class ApiClient(
     
     /**
      * Build full URL from endpoint.
+     * Repositories pass full API paths (e.g. "/api/dashboard/student/1"),
+     * so we just prepend the base URL only.
      */
     fun buildUrl(endpoint: String): String {
         return if (endpoint.startsWith("http")) {
             endpoint
         } else {
-            "$baseUrl/api/v1$endpoint"
+            "$baseUrl$endpoint"
         }
     }
     

@@ -18,7 +18,9 @@ fun UserApiResponse.toDomain(): User = User(
     role = this.role,
     profilePictureUrl = this.profilePictureUrl,
     isActive = this.active,
-    lastLoginAt = this.lastLoginAt
+    lastLoginAt = this.lastLoginAt,
+    studentId = this.student?.id,
+    teacherId = this.teacher?.id
 )
 
 fun StudentApiResponse.toDomain(): Student = Student(
@@ -69,8 +71,11 @@ fun LectureSessionApiResponse.toDomain(): LectureSession = LectureSession(
     startTime = this.startTime,
     endTime = this.endTime,
     roomNumber = this.roomNumber,
-    status = SessionStatus.valueOf(this.status),
-    attendanceMethod = this.attendanceMethod?.let { AttendanceMethod.valueOf(it) },
+    status = runCatching { SessionStatus.valueOf(this.status.uppercase()) }
+        .getOrDefault(SessionStatus.SCHEDULED),
+    attendanceMethod = this.attendanceMethod?.let {
+        runCatching { AttendanceMethod.valueOf(it.uppercase()) }.getOrNull()
+    },
     totalStudents = this.totalStudents,
     presentCount = this.presentCount,
     absentCount = this.absentCount,

@@ -11,6 +11,12 @@ spring:
     password: ${DB_PASSWORD:afora_pass}
     driver-class-name: org.postgresql.Driver
   
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false   # serialize LocalDate as "2026-09-17", not [2026,9,17]
+    deserialization:
+      fail-on-unknown-properties: false
+
   jpa:
     hibernate:
       ddl-auto: validate  # Flyway handles schema
