@@ -127,7 +127,7 @@ data class LectureSessionApiResponse(
     val subjectId: Long,
     val classSectionId: Long,
     val teacherId: Long,
-    val semesterId: Long,
+    val semesterId: String,
     val date: String,
     val startTime: String,
     val endTime: String,

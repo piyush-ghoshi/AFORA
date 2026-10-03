@@ -56,7 +56,7 @@ data class LectureSessionResponse(
     val subjectId: Long,
     val classSectionId: Long,
     val teacherId: Long,
-    val semesterId: Long,
+    val semesterId: String,   // semester UUID as text
     val date: LocalDate,
     val startTime: String,   // "HH:mm:ss"
     val endTime: String,     // "HH:mm:ss"

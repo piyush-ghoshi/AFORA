@@ -21,7 +21,7 @@ class HttpDashboardRepository(
 
     override suspend fun getStudentDashboard(
         studentId: Long,
-        semesterId: Long?
+        semesterId: String?
     ): Result<StudentDashboardStats> {
         val params = semesterId?.let { mapOf("semesterId" to it) } ?: emptyMap()
         

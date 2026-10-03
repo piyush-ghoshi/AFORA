@@ -49,6 +49,18 @@ class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response)
     }
 
+    @ExceptionHandler(ForbiddenException::class)
+    fun handleForbidden(
+        ex: ForbiddenException,
+        request: WebRequest
+    ): ResponseEntity<ApiResponse<Nothing>> {
+        val response = ApiResponse.error<Nothing>(
+            message = ex.message ?: "Forbidden",
+            code = "FORBIDDEN"
+        )
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response)
+    }
+
     @ExceptionHandler(NotFoundException::class)
     fun handleNotFound(
         ex: NotFoundException,
@@ -102,5 +114,6 @@ class GlobalExceptionHandler {
 class ResourceNotFoundException(message: String) : RuntimeException(message)
 class BadRequestException(message: String) : RuntimeException(message)
 class UnauthorizedException(message: String) : RuntimeException(message)
+class ForbiddenException(message: String) : RuntimeException(message)
 class NotFoundException(message: String) : RuntimeException(message)
 class ConflictException(message: String) : RuntimeException(message)

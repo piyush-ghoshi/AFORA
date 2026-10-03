@@ -20,7 +20,7 @@ interface DashboardRepository {
      */
     suspend fun getStudentDashboard(
         studentId: Long,
-        semesterId: Long? = null
+        semesterId: String? = null
     ): Result<StudentDashboardStats>
 
     /**

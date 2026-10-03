@@ -45,7 +45,7 @@ class FakeDashboardRepository : DashboardRepository {
                     subjectId = 101,
                     classSectionId = 10,
                     teacherId = 20,
-                    semesterId = 5,
+                    semesterId = "123e4567-e89b-12d3-a456-426614174002",
                     date = "2026-09-17",
                     startTime = "09:00:00",
                     endTime = "10:30:00",
@@ -60,7 +60,7 @@ class FakeDashboardRepository : DashboardRepository {
 
     override suspend fun getStudentDashboard(
         studentId: Long,
-        semesterId: Long?
+        semesterId: String?
     ): Result<StudentDashboardStats> = studentDashboardResult
 
     override suspend fun getTeacherDashboard(

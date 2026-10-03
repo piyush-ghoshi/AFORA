@@ -11,7 +11,7 @@ data class LectureSession(
     val subjectId: Long,
     val classSectionId: Long,
     val teacherId: Long,
-    val semesterId: Long,
+    val semesterId: String,  // semester UUID as text
     val date: String,  // ISO 8601 date (YYYY-MM-DD)
     val startTime: String,  // ISO 8601 time (HH:mm:ss)
     val endTime: String,  // ISO 8601 time (HH:mm:ss)
