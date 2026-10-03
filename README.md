@@ -45,17 +45,17 @@ AFORA is a production-grade Smart Classroom Attendance Management System built w
                   │ REST API
 ┌─────────────────▼───────────────────────┐
 │       Spring Boot Backend               │
-│  ┌──────────┬──────────┬──────────┐    │
-│  │  Auth    │Academic  │Attendance│    │
-│  │  Module  │ Module   │  Module  │    │
-│  └──────────┴──────────┴──────────┘    │
+│  ┌──────────┬──────────┬──────────┐     │
+│  │  Auth    │Academic  │Attendance│     │
+│  │  Module  │ Module   │  Module  │     │
+│  └──────────┴──────────┴──────────┘     │
 └─────────────────┬───────────────────────┘
                   │
      ┌────────────┴────────────┐
      │                         │
 ┌────▼─────┐            ┌─────▼──────┐
 │PostgreSQL│            │   Redis    │
-│ + pgvector│            │  (Cache)   │
+│+ pgvector│            │  (Cache)   │
 └──────────┘            └────────────┘
 ```
 
