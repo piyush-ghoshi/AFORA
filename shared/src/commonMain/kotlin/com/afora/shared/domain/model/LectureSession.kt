@@ -24,7 +24,9 @@ data class LectureSession(
     val onLeaveCount: Int = 0,
     val startedAt: String? = null,  // ISO 8601 datetime
     val completedAt: String? = null,  // ISO 8601 datetime
-    val notes: String? = null
+    val notes: String? = null,
+    val subjectCode: String? = null,
+    val subjectName: String? = null
 )
 
 /**

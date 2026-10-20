@@ -125,6 +125,8 @@ data class StudentDashboardStatsApiResponse(
 data class LectureSessionApiResponse(
     val id: Long,
     val subjectId: Long,
+    val subjectCode: String? = null,
+    val subjectName: String? = null,
     val classSectionId: Long,
     val teacherId: Long,
     val semesterId: String,

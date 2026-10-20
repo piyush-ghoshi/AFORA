@@ -11,7 +11,9 @@ data class SyncUserApiRequest(
     val email: String,
     val firstName: String,
     val lastName: String,
-    val role: String   // "STUDENT" or "TEACHER"
+    val role: String,  // "STUDENT" or "TEACHER"
+    /** Roll number (students) or employee id (teachers); required to create a new account. */
+    val idNumber: String? = null
 )
 
 /**

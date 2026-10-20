@@ -1,17 +1,22 @@
 package com.afora.android.di
-
 import android.content.Context
 import com.afora.android.data.UserPreferences
 import com.afora.android.data.UserPreferencesStore
 import com.afora.shared.data.api.ApiClient
+import com.afora.shared.data.repository.AttendanceRepository
 import com.afora.shared.data.repository.AuthRepository
 import com.afora.shared.data.repository.DashboardRepository
+import com.afora.shared.data.repository.FaceProfileRepository
 import com.afora.shared.data.repository.FirebaseAuthRepository
+import com.afora.shared.data.repository.HttpAttendanceRepository
 import com.afora.shared.data.repository.HttpDashboardRepository
+import com.afora.shared.data.repository.HttpFaceProfileRepository
+import com.afora.shared.data.repository.HttpLeaveRepository
 import com.afora.shared.data.repository.HttpStudentRepository
 import com.afora.shared.data.repository.HttpTeacherRepository
 import com.afora.shared.data.repository.HttpTimetableRepository
 import com.afora.shared.data.repository.HttpUserRepository
+import com.afora.shared.data.repository.LeaveRepository
 import com.afora.shared.data.repository.StudentRepository
 import com.afora.shared.data.repository.TeacherRepository
 import com.afora.shared.data.repository.TimetableRepository
@@ -32,7 +37,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object RepositoryModule {
 
-    // ── Infrastructure ────────────────────────────────────────────────────────
+    // -- Infrastructure -----------------------------------------------------
 
     @Provides
     @Singleton
@@ -53,13 +58,13 @@ object RepositoryModule {
     fun provideApiClient(
         firebaseAuth: FirebaseAuth
     ): ApiClient = ApiClient(
-        baseUrl = "http://10.0.2.2:8080",   // 10.0.2.2 = host machine from Android emulator
+        baseUrl = "http://localhost:8080",   // localhost:8080 with adb reverse for USB physical devices & emulators
         tokenProvider = {
             firebaseAuth.currentUser?.getIdToken(false)?.await()?.token
         }
     )
 
-    // ── Authentication ────────────────────────────────────────────────────────
+    // -- Authentication -------------------------------------------------------
 
     @Provides
     @Singleton
@@ -67,7 +72,7 @@ object RepositoryModule {
         firebaseAuth: FirebaseAuth
     ): AuthRepository = FirebaseAuthRepository(firebaseAuth)
 
-    // ── User ──────────────────────────────────────────────────────────────────
+    // -- User -------------------------------------------------------------------
 
     @Provides
     @Singleton
@@ -75,7 +80,7 @@ object RepositoryModule {
         apiClient: ApiClient
     ): UserRepository = HttpUserRepository(apiClient)
 
-    // ── Student ───────────────────────────────────────────────────────────────
+    // -- Student ------------------------------------------------------------------
 
     @Provides
     @Singleton
@@ -83,7 +88,7 @@ object RepositoryModule {
         apiClient: ApiClient
     ): StudentRepository = HttpStudentRepository(apiClient)
 
-    // ── Teacher ───────────────────────────────────────────────────────────────
+    // -- Teacher ------------------------------------------------------------------
 
     @Provides
     @Singleton
@@ -91,7 +96,7 @@ object RepositoryModule {
         apiClient: ApiClient
     ): TeacherRepository = HttpTeacherRepository(apiClient)
 
-    // ── Timetable ─────────────────────────────────────────────────────────────
+    // -- Timetable ------------------------------------------------------------------
 
     @Provides
     @Singleton
@@ -99,11 +104,47 @@ object RepositoryModule {
         apiClient: ApiClient
     ): TimetableRepository = HttpTimetableRepository(apiClient)
 
-    // ── Dashboard ─────────────────────────────────────────────────────────────
+    // -- Dashboard ------------------------------------------------------------------
 
     @Provides
     @Singleton
     fun provideDashboardRepository(
         apiClient: ApiClient
     ): DashboardRepository = HttpDashboardRepository(apiClient)
+
+    // -- Attendance (manual marking flow) ----------------------------------------
+
+    @Provides
+    @Singleton
+    fun provideHttpAttendanceRepository(
+        apiClient: ApiClient
+    ): HttpAttendanceRepository = HttpAttendanceRepository(apiClient)
+
+    @Provides
+    @Singleton
+    fun provideAttendanceRepository(
+        impl: HttpAttendanceRepository
+    ): AttendanceRepository = impl
+
+    // -- Leave (leave requests feature) ------------------------------------------
+
+    @Provides
+    @Singleton
+    fun provideLeaveRepository(
+        apiClient: ApiClient
+    ): LeaveRepository = HttpLeaveRepository(apiClient)
+
+    // -- Face recognition ---------------------------------------------------------
+
+    @Provides
+    @Singleton
+    fun provideHttpFaceProfileRepository(
+        apiClient: ApiClient
+    ): HttpFaceProfileRepository = HttpFaceProfileRepository(apiClient)
+
+    @Provides
+    @Singleton
+    fun provideFaceProfileRepository(
+        impl: HttpFaceProfileRepository
+    ): FaceProfileRepository = impl
 }

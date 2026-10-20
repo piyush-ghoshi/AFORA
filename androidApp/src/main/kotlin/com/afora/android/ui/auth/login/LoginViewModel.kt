@@ -129,31 +129,23 @@ class LoginViewModel @Inject constructor(
             role        = roleHint.ifBlank { "STUDENT" }
         )
 
-        val finalRole = when (syncResult) {
-            is Result.Success -> syncResult.data.role
-            is Result.Error   -> roleHint.ifBlank { "STUDENT" }   // fallback if backend offline
+        // Without the backend record nothing in the app can load (dashboards, leave,
+        // attendance), so a failed sync is shown instead of carrying on with a guessed role.
+        if (syncResult is Result.Error) {
+            authRepository.logout()
+            _uiState.value = AuthUiState.Error(syncResult.error.message)
+            return
         }
+        val finalUser = (syncResult as Result.Success).data
+        val finalRole = finalUser.role
 
-        // Step 3 — Cache role in DataStore
+        // Step 3 -- Cache role in DataStore
         userPreferences.saveUser(
             firebaseUid = firebaseUid,
             email       = email,
             displayName = displayName,
             role        = finalRole
         )
-
-        // Build final user from backend response or fallback
-        val finalUser = when (syncResult) {
-            is Result.Success -> syncResult.data
-            is Result.Error   -> com.afora.shared.domain.model.User(
-                firebaseUid = firebaseUid,
-                email       = email,
-                firstName   = displayName.substringBefore(" "),
-                lastName    = displayName.substringAfter(" ", ""),
-                role        = finalRole
-            )
-        }
-
         _uiState.value = AuthUiState.Success(finalUser)
         _events.send(AuthUiEvent.NavigateToHome)
     }

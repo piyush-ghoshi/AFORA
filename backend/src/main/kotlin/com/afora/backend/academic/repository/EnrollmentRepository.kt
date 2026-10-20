@@ -1,4 +1,4 @@
-﻿package com.afora.backend.academic.repository
+package com.afora.backend.academic.repository
 
 import com.afora.backend.academic.entity.Enrollment
 import com.afora.backend.academic.entity.EnrollmentStatus
@@ -50,4 +50,23 @@ interface EnrollmentRepository : JpaRepository<Enrollment, Long> {
         """
     )
     fun countActiveEnrollmentsByStudentId(@Param("studentId") studentId: Long): Long
+
+    /**
+     * R1.1: the ACTIVE roster for a class section, fetch-joining student and
+     * user so the dashboard mapping does not trigger N+1 lazy loads.
+     * Ordered by roll number ascending (R1.6).
+     */
+    @Query(
+        """
+        SELECT e FROM Enrollment e
+        JOIN FETCH e.student s
+        JOIN FETCH s.user
+        WHERE e.classSection.id = :classSectionId
+          AND e.status = com.afora.backend.academic.entity.EnrollmentStatus.ACTIVE
+        ORDER BY s.rollNumber ASC
+        """
+    )
+    fun findActiveRosterByClassSectionId(
+        @Param("classSectionId") classSectionId: Long
+    ): List<Enrollment>
 }

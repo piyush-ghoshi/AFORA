@@ -131,6 +131,39 @@ class LoginViewModelTest {
         assertTrue(uiState is AuthUiState.Success)
         assertEquals("google@example.com", (uiState as AuthUiState.Success).user.email)
     }
+    @Test
+    fun `a failed backend sync is shown and the user is signed out`() = runTest {
+        val user = User(1, "uid123", "test@example.com", "John", "Doe", "STUDENT")
+        fakeAuthRepository.loginResult = Result.Success(AuthResult(user = user, idToken = "token123", expiresIn = 3600L))
+        fakeUserRepository.syncResult = Result.Error(
+            AppError.ApiError(400, "No AFORA profile exists for this account yet.")
+        )
+
+        viewModel.onEmailChange("test@example.com")
+        viewModel.onPasswordChange("123456")
+        viewModel.onLoginClick()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertTrue(state is AuthUiState.Error)
+        assertEquals("No AFORA profile exists for this account yet.", (state as AuthUiState.Error).message)
+        assertEquals(1, fakeAuthRepository.logoutCalls)
+    }
+
+    @Test
+    fun `login sends no id number and takes the role from the backend`() = runTest {
+        val user = User(1, "uid123", "test@example.com", "John", "Doe", "STUDENT")
+        fakeAuthRepository.loginResult = Result.Success(AuthResult(user = user, idToken = "token123", expiresIn = 3600L))
+        fakeUserRepository.syncResult = Result.Success(user.copy(role = "TEACHER"))
+
+        viewModel.onEmailChange("test@example.com")
+        viewModel.onPasswordChange("123456")
+        viewModel.onLoginClick()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(null, fakeUserRepository.lastSyncIdNumber)
+        assertEquals("TEACHER", (viewModel.uiState.value as AuthUiState.Success).user.role)
+    }
 }
 
 // ── Shared fakes ──────────────────────────────────────────────────────────────
@@ -149,7 +182,12 @@ class FakeAuthRepository : AuthRepository {
     override suspend fun login(email: String, password: String) = loginResult
     override suspend fun register(email: String, password: String, firstName: String, lastName: String, role: String) = registerResult
     override suspend fun signInWithGoogle(idToken: String) = googleSignInResult
-    override suspend fun logout(): Result<Unit> { isAuthenticatedResult = false; return Result.Success(Unit) }
+    var logoutCalls = 0
+    var deleteCalls = 0
+    var deleteResult: Result<Unit> = Result.Success(Unit)
+
+    override suspend fun logout(): Result<Unit> { logoutCalls++; isAuthenticatedResult = false; return Result.Success(Unit) }
+    override suspend fun deleteCurrentAccount(): Result<Unit> { deleteCalls++; return deleteResult }
     override suspend fun getCurrentUser() = currentUserResult
     override suspend fun getIdToken(forceRefresh: Boolean) = Result.Success("fake-token")
     override suspend fun isAuthenticated() = isAuthenticatedResult

@@ -4,25 +4,36 @@ import com.afora.shared.platform.Logger
 import com.afora.shared.util.AppError
 import com.afora.shared.util.Result
 import io.ktor.client.*
+import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
-import io.ktor.client.plugins.auth.*
-import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 /**
  * API Client for backend communication using Ktor.
  * Handles authentication, serialization, error handling.
+ *
+ * Authentication: [tokenProvider] is asked for a token on EVERY request and the result
+ * is sent as `Authorization: Bearer <token>`. Ktor's bearer-auth plugin is deliberately
+ * not used: it loads the token once and keeps it until the server answers 401 with a
+ * `WWW-Authenticate` challenge, which this backend never sends. The result was that the
+ * first account's token was reused for every later request, so registering or logging in
+ * as a second account acted as the first, and nothing refreshed after the token expired.
+ * Asking each time is cheap because Firebase caches the token and refreshes it when due.
+ *
+ * @param engine optional HTTP engine, so tests can supply a mock one.
  */
 class ApiClient(
     private val baseUrl: String = "http://localhost:8080",  // Configurable
-    private val tokenProvider: suspend () -> String? = { null }
+    private val tokenProvider: suspend () -> String? = { null },
+    engine: HttpClientEngine? = null
 ) {
     
     companion object {
@@ -35,8 +46,8 @@ class ApiClient(
         encodeDefaults = true
         prettyPrint = false
     }
-    
-    val httpClient = HttpClient {
+
+    private val clientConfig: HttpClientConfig<*>.() -> Unit = {
         // Content negotiation (JSON)
         install(ContentNegotiation) {
             json(json)
@@ -52,23 +63,13 @@ class ApiClient(
             level = LogLevel.INFO
         }
         
-        // Authentication
-        install(Auth) {
-            bearer {
-                loadTokens {
-                    val token = tokenProvider()
-                    token?.let {
-                        BearerTokens(accessToken = it, refreshToken = "")
-                    }
-                }
+        // Default timeouts (only for real network calls to avoid background timer leaks in MockEngine unit tests)
+        if (engine == null) {
+            install(HttpTimeout) {
+                requestTimeoutMillis = 30_000
+                connectTimeoutMillis = 15_000
+                socketTimeoutMillis = 30_000
             }
-        }
-        
-        // Default timeouts
-        install(HttpTimeout) {
-            requestTimeoutMillis = 30_000
-            connectTimeoutMillis = 15_000
-            socketTimeoutMillis = 30_000
         }
         
         // Default headers
@@ -77,7 +78,21 @@ class ApiClient(
             header(HttpHeaders.Accept, ContentType.Application.Json)
         }
     }
-    
+
+    val httpClient: HttpClient =
+        if (engine != null) HttpClient(engine, clientConfig) else HttpClient(clientConfig)
+
+    init {
+        // Attach the CURRENT token to every outgoing request (see class comment).
+        httpClient.plugin(HttpSend).intercept { request ->
+            val token = tokenProvider()
+            request.headers.remove(HttpHeaders.Authorization)
+            if (!token.isNullOrBlank()) {
+                request.headers.append(HttpHeaders.Authorization, "Bearer $token")
+            }
+            execute(request)
+        }
+    }
     /**
      * Build full URL from endpoint.
      * Repositories pass full API paths (e.g. "/api/dashboard/student/1"),
@@ -101,7 +116,14 @@ class ApiClient(
             val response = call()
             when (response.status) {
                 HttpStatusCode.OK, HttpStatusCode.Created -> {
-                    Result.Success(response.body<T>())
+                    try {
+                        Result.Success(response.body<T>())
+                    } catch (e: SerializationException) {
+                        Result.Error(AppError.ApiError(
+                            code = response.status.value,
+                            message = "Malformed response body: ${e.message}"
+                        ))
+                    }
                 }
                 HttpStatusCode.Unauthorized -> {
                     Result.Error(AppError.UnauthorizedError("Session expired. Please login again."))

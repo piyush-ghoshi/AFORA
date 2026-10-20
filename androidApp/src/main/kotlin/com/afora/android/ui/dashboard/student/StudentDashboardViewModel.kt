@@ -18,7 +18,10 @@ import javax.inject.Inject
 /**
  * ViewModel for the student dashboard.
  *
- * Phase A5: Loads authenticated user profile and dashboard stats from DashboardRepository.
+ * Loads the signed-in user's profile from the backend, then the dashboard figures for
+ * that student. Failures are shown as errors with a retry: there is deliberately no
+ * offline fallback that substitutes empty figures, because that hides a broken
+ * connection or a missing profile behind a screen that looks like a new student.
  */
 @HiltViewModel
 class StudentDashboardViewModel @Inject constructor(
@@ -38,22 +41,22 @@ class StudentDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = StudentDashboardUiState.Loading
 
-            // First, get the user profile to extract studentId
             val userResult = userRepository.getMyProfile()
             if (userResult is Result.Error) {
+                _uiState.value = StudentDashboardUiState.Error(userResult.error.message)
+                return@launch
+            }
+            val user = (userResult as Result.Success).data
+
+            // The dashboard is keyed by the students-table id, which is not the users-table id.
+            val studentId = user.studentId
+            if (studentId == null) {
                 _uiState.value = StudentDashboardUiState.Error(
-                    userResult.error.message ?: "Failed to load user profile"
+                    "Your student profile is not set up yet. Please contact your administrator."
                 )
                 return@launch
             }
 
-            val user = (userResult as Result.Success).data
-            
-            // Use studentId from the nested student profile; fall back to user.id if not yet
-            // populated (e.g. during onboarding before profile is fully created).
-            val studentId = user.studentId ?: user.id
-
-            // Now fetch dashboard stats
             when (val statsResult = dashboardRepository.getStudentDashboard(studentId)) {
                 is Result.Success -> {
                     _uiState.value = StudentDashboardUiState.Success(
@@ -68,9 +71,7 @@ class StudentDashboardViewModel @Inject constructor(
                     )
                 }
                 is Result.Error -> {
-                    _uiState.value = StudentDashboardUiState.Error(
-                        statsResult.error.message ?: "Failed to load dashboard"
-                    )
+                    _uiState.value = StudentDashboardUiState.Error(statsResult.error.message)
                 }
             }
         }

@@ -31,7 +31,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
                 
                 // Networking (Ktor)
-                implementation("io.ktor:ktor-client-core:2.3.5")
+                api("io.ktor:ktor-client-core:2.3.5")
                 implementation("io.ktor:ktor-client-content-negotiation:2.3.5")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.5")
                 implementation("io.ktor:ktor-client-logging:2.3.5")
@@ -90,6 +90,10 @@ kotlin {
                 implementation(kotlin("test"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
                 implementation("io.mockk:mockk:1.13.8")
+                // Mock HTTP engine for ApiClient tests
+                implementation("io.ktor:ktor-client-mock:2.3.5")
+                // Property testing: library only, NOT the Kotest runner
+                implementation("io.kotest:kotest-property:5.8.0")
             }
         }
         
@@ -110,6 +114,11 @@ android {
         minSdk = 24
     }
     
+    testOptions {
+        // android.util.Log et al. return defaults instead of throwing in JVM unit tests
+        unitTests.isReturnDefaultValues = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

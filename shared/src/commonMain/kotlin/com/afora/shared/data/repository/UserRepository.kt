@@ -27,7 +27,8 @@ interface UserRepository {
         email: String,
         firstName: String,
         lastName: String,
-        role: String
+        role: String,
+        idNumber: String? = null
     ): Result<User>
 
     /**

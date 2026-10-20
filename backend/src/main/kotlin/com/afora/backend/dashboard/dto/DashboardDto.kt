@@ -54,6 +54,8 @@ data class TeacherDashboardStatsResponse(
 data class LectureSessionResponse(
     val id: Long,
     val subjectId: Long,
+    val subjectCode: String,
+    val subjectName: String,
     val classSectionId: Long,
     val teacherId: Long,
     val semesterId: String,   // semester UUID as text

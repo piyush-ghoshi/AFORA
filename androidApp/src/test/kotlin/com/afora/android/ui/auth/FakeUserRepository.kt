@@ -15,14 +15,26 @@ class FakeUserRepository : UserRepository {
         User(1, "uid_synced", "synced@afora.edu", "Test", "User", "STUDENT")
     )
     var profileResult: Result<User> = Result.Error(AppError.NotFoundError("No profile"))
+    var updateResult: Result<User>? = null
+
+    var syncCalls = 0
+    var lastSyncIdNumber: String? = null
+    var lastSyncRole: String? = null
+    var lastUpdate: Pair<String, String>? = null
 
     override suspend fun syncUser(
         firebaseUid: String,
         email: String,
         firstName: String,
         lastName: String,
-        role: String
-    ): Result<User> = syncResult
+        role: String,
+        idNumber: String?
+    ): Result<User> {
+        syncCalls++
+        lastSyncIdNumber = idNumber
+        lastSyncRole = role
+        return syncResult
+    }
 
     override suspend fun getMyProfile(): Result<User> = profileResult
 
@@ -30,5 +42,8 @@ class FakeUserRepository : UserRepository {
         firstName: String,
         lastName: String,
         profilePictureUrl: String?
-    ): Result<User> = syncResult
+    ): Result<User> {
+        lastUpdate = firstName to lastName
+        return updateResult ?: syncResult
+    }
 }

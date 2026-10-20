@@ -18,7 +18,9 @@ import javax.inject.Inject
 /**
  * ViewModel for the teacher dashboard.
  *
- * Phase A5: Loads authenticated user profile and dashboard stats from DashboardRepository.
+ * Loads the signed-in user's profile from the backend, then today's schedule for that
+ * teacher. Failures are shown as errors with a retry; there is no offline fallback that
+ * substitutes empty figures (see [com.afora.android.ui.dashboard.student.StudentDashboardViewModel]).
  */
 @HiltViewModel
 class TeacherDashboardViewModel @Inject constructor(
@@ -38,22 +40,22 @@ class TeacherDashboardViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = TeacherDashboardUiState.Loading
 
-            // First, get the user profile to extract teacherId
             val userResult = userRepository.getMyProfile()
             if (userResult is Result.Error) {
+                _uiState.value = TeacherDashboardUiState.Error(userResult.error.message)
+                return@launch
+            }
+            val user = (userResult as Result.Success).data
+
+            // The dashboard is keyed by the teachers-table id, which is not the users-table id.
+            val teacherId = user.teacherId
+            if (teacherId == null) {
                 _uiState.value = TeacherDashboardUiState.Error(
-                    userResult.error.message ?: "Failed to load user profile"
+                    "Your teacher profile is not set up yet. Please contact your administrator."
                 )
                 return@launch
             }
 
-            val user = (userResult as Result.Success).data
-            
-            // Use teacherId from the nested teacher profile; fall back to user.id if not yet
-            // populated (e.g. during onboarding before profile is fully created).
-            val teacherId = user.teacherId ?: user.id
-
-            // Now fetch dashboard stats (defaults to today's date)
             when (val statsResult = dashboardRepository.getTeacherDashboard(teacherId)) {
                 is Result.Success -> {
                     _uiState.value = TeacherDashboardUiState.Success(
@@ -66,9 +68,7 @@ class TeacherDashboardViewModel @Inject constructor(
                     )
                 }
                 is Result.Error -> {
-                    _uiState.value = TeacherDashboardUiState.Error(
-                        statsResult.error.message ?: "Failed to load dashboard"
-                    )
+                    _uiState.value = TeacherDashboardUiState.Error(statsResult.error.message)
                 }
             }
         }

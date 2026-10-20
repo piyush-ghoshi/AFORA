@@ -117,6 +117,9 @@ dependencies {
     // Firebase Authentication
     implementation("com.google.firebase:firebase-auth-ktx")
     
+    // Firebase Cloud Messaging
+    implementation("com.google.firebase:firebase-messaging-ktx")
+    
     // Firebase UI (optional - provides pre-built auth UI)
     implementation("com.firebaseui:firebase-ui-auth:8.0.2")
     
@@ -125,6 +128,16 @@ dependencies {
     
     // Encrypted SharedPreferences for secure token storage
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    
+    // CameraX
+    val cameraxVersion = "1.3.1"
+    implementation("androidx.camera:camera-core:$cameraxVersion")
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-view:$cameraxVersion")
+
+    // Google ML Kit Face Detection
+    implementation("com.google.mlkit:face-detection:16.1.6")
     
     // Testing
     testImplementation("junit:junit:4.13.2")

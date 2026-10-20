@@ -58,7 +58,7 @@ class TeacherDashboardViewModelTest {
     fun `when user profile loads successfully and dashboard data loads shows Success state`() = runTest {
         // Setup: user profile succeeds
         fakeUserRepository.profileResult = Result.Success(
-            User(1, "uid123", "teacher@afora.edu", "Jane", "Smith", "TEACHER")
+            User(1, "uid123", "teacher@afora.edu", "Jane", "Smith", "TEACHER", teacherId = 20)
         )
         
         // Setup: dashboard data succeeds
@@ -113,7 +113,7 @@ class TeacherDashboardViewModelTest {
     fun `when dashboard data fails to load shows Error state`() = runTest {
         // Setup: user profile succeeds
         fakeUserRepository.profileResult = Result.Success(
-            User(1, "uid123", "teacher@afora.edu", "Jane", "Smith", "TEACHER")
+            User(1, "uid123", "teacher@afora.edu", "Jane", "Smith", "TEACHER", teacherId = 20)
         )
         
         // Setup: dashboard data fails
@@ -133,7 +133,7 @@ class TeacherDashboardViewModelTest {
     fun `when dashboard has no classes today shows empty schedule`() = runTest {
         // Setup: user profile succeeds
         fakeUserRepository.profileResult = Result.Success(
-            User(1, "uid123", "teacher@afora.edu", "John", "Doe", "TEACHER")
+            User(1, "uid123", "teacher@afora.edu", "John", "Doe", "TEACHER", teacherId = 20)
         )
         
         // Setup: dashboard with no classes
@@ -161,7 +161,7 @@ class TeacherDashboardViewModelTest {
     fun `when dashboard has multiple classes they are all included`() = runTest {
         // Setup: user profile succeeds
         fakeUserRepository.profileResult = Result.Success(
-            User(1, "uid123", "teacher@afora.edu", "Jane", "Doe", "TEACHER")
+            User(1, "uid123", "teacher@afora.edu", "Jane", "Doe", "TEACHER", teacherId = 20)
         )
         
         // Setup: dashboard with multiple classes
@@ -223,7 +223,7 @@ class TeacherDashboardViewModelTest {
 
         // Fix the error and retry
         fakeUserRepository.profileResult = Result.Success(
-            User(1, "uid123", "teacher@afora.edu", "Jane", "Smith", "TEACHER")
+            User(1, "uid123", "teacher@afora.edu", "Jane", "Smith", "TEACHER", teacherId = 20)
         )
         fakeDashboardRepository.teacherDashboardResult = Result.Success(
             TeacherDashboardStats(
@@ -239,5 +239,31 @@ class TeacherDashboardViewModelTest {
         val state = viewModel.uiState.value
         assertTrue(state is TeacherDashboardUiState.Success)
         assertEquals(2, (state as TeacherDashboardUiState.Success).data.pendingLeaveRequests)
+    }
+    @Test
+    fun `a profile failure is shown and not replaced by empty figures`() = runTest {
+        fakeUserRepository.profileResult = Result.Error(AppError.NotFoundError("Resource not found"))
+        fakeAuthRepository.currentUserResult = Result.Success(
+            User(0, "uid123", "t@afora.edu", "Dana", "Smith", "TEACHER")
+        )
+
+        viewModel = buildViewModel()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value is TeacherDashboardUiState.Error)
+    }
+
+    @Test
+    fun `a teacher with no teacher profile gets a clear error`() = runTest {
+        fakeUserRepository.profileResult = Result.Success(
+            User(1, "uid123", "t@afora.edu", "Dana", "Smith", "TEACHER")  // teacherId = null
+        )
+
+        viewModel = buildViewModel()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertTrue(state is TeacherDashboardUiState.Error)
+        assertTrue((state as TeacherDashboardUiState.Error).message.contains("profile"))
     }
 }

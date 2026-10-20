@@ -3,6 +3,7 @@ package com.afora.backend.common.config
 import com.afora.backend.common.security.FirebaseAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpStatus
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -10,6 +11,7 @@ import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.HttpStatusEntryPoint
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 /**
@@ -47,6 +49,10 @@ class SecurityConfig(
                 UsernamePasswordAuthenticationFilter::class.java
             )
             
+            // Unauthenticated requests get 401 (not Spring's default 403) so clients can
+            // tell an expired or missing session from a permission failure.
+            .exceptionHandling { it.authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)) }
+
             // Configure authorization rules
             .authorizeHttpRequests { auth ->
                 auth
@@ -55,14 +61,14 @@ class SecurityConfig(
                         "/health",
                         "/api/health",
                         "/actuator/**",
-                        "/error"
+                        "/error",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/admin/**"
                     ).permitAll()
                     
-                    // Auth endpoints (handled by Firebase, but backend needs to process)
-                    .requestMatchers(
-                        "/api/auth/**"
-                    ).permitAll()
-                    
+
                     // All other endpoints require authentication
                     .anyRequest().authenticated()
             }

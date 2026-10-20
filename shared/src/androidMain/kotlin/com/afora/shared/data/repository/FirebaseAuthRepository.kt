@@ -177,6 +177,17 @@ class FirebaseAuthRepository(
 
     // ── Current user ──────────────────────────────────────────────────────────
 
+    override suspend fun deleteCurrentAccount(): Result<Unit> {
+        val firebaseUser = firebaseAuth.currentUser
+            ?: return Result.Error(AppError.AuthenticationError("Not authenticated"))
+        return try {
+            firebaseUser.delete().await()
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(AppError.UnknownError("Could not remove the account: ${e.message}"))
+        }
+    }
+
     override suspend fun getCurrentUser(): Result<User> {
         val firebaseUser = firebaseAuth.currentUser
             ?: return Result.Error(AppError.AuthenticationError("Not authenticated"))
@@ -289,7 +300,7 @@ class FirebaseAuthRepository(
             "ERROR_INVALID_CREDENTIAL"      -> AppError.AuthenticationError("Incorrect email or password")
             "ERROR_USER_NOT_FOUND"          -> AppError.AuthenticationError("No account found with this email")
             "ERROR_USER_DISABLED"           -> AppError.AuthenticationError("This account has been disabled")
-            "ERROR_EMAIL_ALREADY_IN_USE"    -> AppError.ValidationError(listOf("An account with this email already exists"))
+            "ERROR_EMAIL_ALREADY_IN_USE"    -> AppError.ValidationError(listOf(AuthMessages.EMAIL_ALREADY_IN_USE))
             "ERROR_WEAK_PASSWORD"           -> AppError.ValidationError(listOf("Password is too weak"))
             "ERROR_NETWORK_REQUEST_FAILED"  -> AppError.NetworkError("Network error. Check your connection.")
             "ERROR_TOO_MANY_REQUESTS"       -> AppError.AuthenticationError("Too many attempts. Try again later.")

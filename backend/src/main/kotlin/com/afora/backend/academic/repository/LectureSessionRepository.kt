@@ -2,6 +2,8 @@ package com.afora.backend.academic.repository
 
 import com.afora.backend.academic.entity.LectureSession
 import com.afora.backend.academic.entity.SessionStatus
+import jakarta.persistence.LockModeType
+import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
@@ -68,4 +70,17 @@ interface LectureSessionRepository : JpaRepository<LectureSession, Long> {
         @Param("studentId") studentId: Long,
         @Param("semesterId") semesterId: java.util.UUID?
     ): Long
+
+    /**
+     * Pessimistic row lock over the session, acquired as the first statement of
+     * the confirm and amend transactions. This is what makes R6.11 deterministic
+     * rather than a race on the unique index: the loser blocks, then reads
+     * FINALIZED, then takes the clean R6.8 path.
+     *
+     * The explicit @Query is required - @Lock on a derived findById does not
+     * reliably emit FOR UPDATE.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT ls FROM LectureSession ls WHERE ls.id = :id")
+    fun findByIdForUpdate(@Param("id") id: Long): LectureSession?
 }

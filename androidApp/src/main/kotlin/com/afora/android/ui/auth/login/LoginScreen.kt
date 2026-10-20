@@ -2,14 +2,39 @@ package com.afora.android.ui.auth.login
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -24,6 +49,8 @@ import com.afora.android.ui.auth.LoginFormState
 import com.afora.android.ui.auth.components.EmailTextField
 import com.afora.android.ui.auth.components.GoogleSignInButton
 import com.afora.android.ui.auth.components.PasswordTextField
+import com.afora.android.ui.components.AforaCard
+import com.afora.android.ui.components.InfoBanner
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -49,6 +76,7 @@ fun LoginScreen(
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val busy = uiState is AuthUiState.Loading
 
     val googleLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -56,183 +84,152 @@ fun LoginScreen(
         val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
         try {
             val account = task.getResult(ApiException::class.java)
-            account?.idToken?.let { idToken ->
-                onGoogleSignInClick(idToken)
-            }
+            account?.idToken?.let { idToken -> onGoogleSignInClick(idToken) }
         } catch (_: ApiException) {
             // Cancelled or error
         }
     }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = { },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
     ) { paddingValues ->
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(24.dp)
+                .padding(horizontal = 20.dp)
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header
-            Column(
-                horizontalAlignment = Alignment.Start,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Welcome Back",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
+                    text = "AFORA ACADEMIC",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
                 )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
+                Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "Sign in to continue",
-                    style = MaterialTheme.typography.bodyLarge,
+                    text = "Log In",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "Enter your credentials to access your attendance records",
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            
-            Spacer(modifier = Modifier.height(32.dp))
-            
-            // Error message
+
+            Spacer(Modifier.height(24.dp))
+
             if (uiState is AuthUiState.Error) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
-                    )
-                ) {
-                    Text(
-                        text = uiState.message,
-                        modifier = Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-            
-            // Email field
-            EmailTextField(
-                value = formState.email,
-                onValueChange = onEmailChange,
-                enabled = uiState !is AuthUiState.Loading,
-                isError = formState.validation.emailError != null,
-                errorMessage = formState.validation.emailError,
-                imeAction = ImeAction.Next,
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                InfoBanner(
+                    text = uiState.message,
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    icon = Icons.Filled.Warning
                 )
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Password field
-            PasswordTextField(
-                value = formState.password,
-                onValueChange = onPasswordChange,
-                enabled = uiState !is AuthUiState.Loading,
-                isError = formState.validation.passwordError != null,
-                errorMessage = formState.validation.passwordError,
-                imeAction = ImeAction.Done,
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        focusManager.clearFocus()
-                        if (formState.validation.isValid) {
-                            onLoginClick()
+                Spacer(Modifier.height(16.dp))
+            }
+
+            AforaCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    EmailTextField(
+                        value = formState.email,
+                        onValueChange = onEmailChange,
+                        enabled = !busy,
+                        isError = formState.validation.emailError != null,
+                        errorMessage = formState.validation.emailError,
+                        imeAction = ImeAction.Next,
+                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
+                    )
+
+                    Spacer(Modifier.height(16.dp))
+
+                    PasswordTextField(
+                        value = formState.password,
+                        onValueChange = onPasswordChange,
+                        enabled = !busy,
+                        isError = formState.validation.passwordError != null,
+                        errorMessage = formState.validation.passwordError,
+                        imeAction = ImeAction.Done,
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                focusManager.clearFocus()
+                                if (formState.validation.isValid) onLoginClick()
+                            }
+                        )
+                    )
+
+                    Spacer(Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = formState.rememberMe,
+                                onCheckedChange = onRememberMeChange,
+                                enabled = !busy
+                            )
+                            Text(
+                                text = "Remember me",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        TextButton(onClick = onForgotPasswordClick, enabled = !busy) {
+                            Text(
+                                text = "Forgot password?",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         }
                     }
-                )
-            )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            // Remember me and Forgot password
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = formState.rememberMe,
-                        onCheckedChange = onRememberMeChange,
-                        enabled = uiState !is AuthUiState.Loading
-                    )
-                    Text(
-                        text = "Remember me",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                
-                TextButton(
-                    onClick = onForgotPasswordClick,
-                    enabled = uiState !is AuthUiState.Loading
-                ) {
-                    Text(
-                        text = "Forgot Password?",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
+
+                    Spacer(Modifier.height(8.dp))
+
+                    Button(
+                        onClick = onLoginClick,
+                        enabled = formState.validation.isValid && !busy,
+                        shape = RoundedCornerShape(4.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .defaultMinSize(minHeight = 56.dp)
+                    ) {
+                        if (busy) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("Log In", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            Spacer(Modifier.width(8.dp))
+                            Icon(Icons.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp))
+                        }
+                    }
                 }
             }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // Login button
-            Button(
-                onClick = onLoginClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                enabled = formState.validation.isValid && uiState !is AuthUiState.Loading,
-                shape = MaterialTheme.shapes.medium
-            ) {
-                if (uiState is AuthUiState.Loading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(
-                        text = "Sign In",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // Divider
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+
+            Spacer(Modifier.height(20.dp))
+
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Divider(modifier = Modifier.weight(1f))
                 Text(
                     text = "OR",
@@ -242,10 +239,9 @@ fun LoginScreen(
                 )
                 Divider(modifier = Modifier.weight(1f))
             }
-            
-            Spacer(modifier = Modifier.height(24.dp))
 
-            // Google Sign-In button
+            Spacer(Modifier.height(20.dp))
+
             GoogleSignInButton(
                 onClick = {
                     val webClientId = context.getString(R.string.default_web_client_id)
@@ -253,16 +249,14 @@ fun LoginScreen(
                         .requestIdToken(webClientId)
                         .requestEmail()
                         .build()
-                    val googleSignInClient = GoogleSignIn.getClient(context, gso)
-                    googleLauncher.launch(googleSignInClient.signInIntent)
+                    googleLauncher.launch(GoogleSignIn.getClient(context, gso).signInIntent)
                 },
-                enabled = uiState !is AuthUiState.Loading,
+                enabled = !busy,
                 text = "Sign in with Google"
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // Create account link
+            Spacer(Modifier.height(20.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
@@ -273,13 +267,7 @@ fun LoginScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                
-                Spacer(modifier = Modifier.width(4.dp))
-                
-                TextButton(
-                    onClick = onCreateAccountClick,
-                    enabled = uiState !is AuthUiState.Loading
-                ) {
+                TextButton(onClick = onCreateAccountClick, enabled = !busy) {
                     Text(
                         text = "Create Account",
                         style = MaterialTheme.typography.bodyMedium,
@@ -287,8 +275,8 @@ fun LoginScreen(
                     )
                 }
             }
-            
-            Spacer(modifier = Modifier.height(16.dp))
+
+            Spacer(Modifier.height(16.dp))
         }
     }
 }

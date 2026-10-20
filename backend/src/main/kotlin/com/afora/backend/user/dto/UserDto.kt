@@ -99,7 +99,12 @@ data class SyncUserRequest(
     @field:NotBlank val firstName: String,
     @field:NotBlank val lastName: String,
     /** STUDENT or TEACHER */
-    @field:NotBlank val role: String
+    @field:NotBlank val role: String,
+    /**
+     * Roll number (students) or employee id (teachers). Required to create a new
+     * account; ignored for an existing one.
+     */
+    @field:Size(max = 50) val idNumber: String? = null
 )
 
 /**

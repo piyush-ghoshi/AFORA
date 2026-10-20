@@ -138,6 +138,8 @@ class DashboardService(
         return LectureSessionResponse(
             id = id,
             subjectId = subject.id,
+            subjectCode = subject.code,
+            subjectName = subject.name,
             classSectionId = section.id,
             teacherId = teacher.id ?: 0L,
             semesterId = semesterId.toString(),

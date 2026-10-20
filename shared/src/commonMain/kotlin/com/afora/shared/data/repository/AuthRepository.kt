@@ -45,6 +45,13 @@ interface AuthRepository {
      * Logout current user (sign out from Firebase).
      */
     suspend fun logout(): Result<Unit>
+
+    /**
+     * Permanently delete the signed-in Firebase account. Used only to roll back an
+     * account the app has just created when the follow-up backend registration fails,
+     * so the user can retry with the same email.
+     */
+    suspend fun deleteCurrentAccount(): Result<Unit>
     
     /**
      * Get currently authenticated user from Firebase.

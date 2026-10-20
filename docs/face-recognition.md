@@ -58,16 +58,16 @@ This document outlines the face recognition strategy for the Smart Classroom Att
 │  │  Face Alignment    │                                     │
 │  │  & Cropping        │                                     │
 │  └──────┬─────────────┘                                     │
-│         │                                                    │
-│         ▼                                                    │
+│         │                                                   │
+│         ▼                                                   │
 │  ┌────────────────────┐                                     │
 │  │  Face Embedding    │                                     │
 │  │  (FaceNet/ArcFace) │                                     │
 │  └──────┬─────────────┘                                     │
-│         │                                                    │
-│         ▼                                                    │
-│  ┌────────────────────┐     ┌──────────────────┐          │
-│  │  Cosine Similarity │────▶│  Confidence Score│          │
+│         │                                                   │
+│         ▼                                                   │
+│  ┌────────────────────┐     ┌──────────────────┐            │
+│  │  Cosine Similarity │────▶│  Confidence Score│            │
 │  │  (vs Enrolled)     │     │  Classification   │          │
 │  └────────────────────┘     └──────────────────┘          │
 └──────────────┬──────────────────────────────────────────────┘

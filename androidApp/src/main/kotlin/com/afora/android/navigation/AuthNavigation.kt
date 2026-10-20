@@ -111,6 +111,7 @@ fun NavGraphBuilder.authNavGraph(
                 onRoleChange = viewModel::onRoleChange,
                 onFirstNameChange = viewModel::onFirstNameChange,
                 onLastNameChange = viewModel::onLastNameChange,
+                onIdNumberChange = viewModel::onIdNumberChange,
                 onEmailChange = viewModel::onEmailChange,
                 onPasswordChange = viewModel::onPasswordChange,
                 onConfirmPasswordChange = viewModel::onConfirmPasswordChange,

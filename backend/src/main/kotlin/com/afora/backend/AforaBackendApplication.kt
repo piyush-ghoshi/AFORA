@@ -11,5 +11,6 @@ import org.springframework.boot.runApplication
 class AforaBackendApplication
 
 fun main(args: Array<String>) {
+    System.setProperty("java.net.preferIPv4Stack", "true")
     runApplication<AforaBackendApplication>(*args)
 }

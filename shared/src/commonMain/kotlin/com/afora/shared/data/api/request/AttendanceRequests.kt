@@ -11,7 +11,7 @@ data class StartLectureSessionRequest(
     val timetableSlotId: Long? = null,
     val subjectId: Long,
     val classSectionId: Long,
-    val semesterId: Long,
+    val semesterId: String,  // semester UUID as text (R11.4)
     val date: String,  // ISO 8601 date
     val startTime: String,  // ISO 8601 time
     val endTime: String,  // ISO 8601 time

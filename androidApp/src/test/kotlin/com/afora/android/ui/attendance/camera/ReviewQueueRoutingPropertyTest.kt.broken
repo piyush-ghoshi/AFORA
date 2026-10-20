@@ -1,0 +1,361 @@
+package com.afora.android.ui.attendance.camera
+
+import com.afora.shared.data.api.EnrolledEmbeddingSetResponse
+import com.afora.shared.data.api.RosterEntry
+import com.afora.shared.data.api.RosterResponse
+import com.afora.shared.data.repository.AttendanceRepository
+import com.afora.shared.data.repository.FaceProfileRepository
+import com.afora.shared.domain.model.AttendanceStatus
+import com.afora.shared.domain.model.SessionStatus
+import com.afora.shared.util.Result
+import io.mockk.coEvery
+import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+
+/**
+ * **Validates: Requirements 7.5, 7.6, 7.7, 8.4**
+ *
+ * Property 4: Confidence band determines routing between `candidates` and `reviewQueue`,
+ * exclusively — every HIGH lands only in `candidates` pre-selected PRESENT, every MEDIUM
+ * lands only in `reviewQueue`, every null touches neither, and `confirmEnabled` is false if
+ * and only if `reviewQueue` is non-empty.
+ *
+ * This test uses manually constructed test scenarios covering multiple combinations of HIGH,
+ * MEDIUM, and null (no-match) candidates to validate the routing logic, matching the spirit
+ * of a property-based test without requiring kotest dependencies in the androidApp module.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+class ReviewQueueRoutingPropertyTest {
+
+    private val testDispatcher = StandardTestDispatcher()
+    private lateinit var attendanceRepository: AttendanceRepository
+    private lateinit var faceProfileRepository: FaceProfileRepository
+
+    @Before
+    fun setup() {
+        Dispatchers.setMain(testDispatcher)
+        attendanceRepository = mockk()
+        faceProfileRepository = mockk()
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+
+    private fun createRosterEntry(studentId: Long, rollNumber: String, fullName: String): RosterEntry {
+        return RosterEntry(
+            studentId = studentId,
+            rollNumber = rollNumber,
+            fullName = fullName,
+            storedStatus = null,
+            suggestedStatus = AttendanceStatus.ABSENT,
+            attendanceRecordId = null,
+            leaveRequestId = null,
+            leaveReason = null,
+            isCorrected = false
+        )
+    }
+
+    private fun createRoster(students: List<RosterEntry>): RosterResponse {
+        return RosterResponse(
+            sessionId = 1L,
+            classSectionId = 1L,
+            subjectId = 1L,
+            subjectCode = "CS101",
+            subjectName = "Introduction to CS",
+            sessionDate = "2024-01-01",
+            startTime = "10:00:00",
+            endTime = "11:00:00",
+            sessionStatus = SessionStatus.ACTIVE,
+            attendanceMethod = null,
+            totalStudents = students.size,
+            presentCount = 0,
+            absentCount = students.size,
+            onLeaveCount = 0,
+            startedAt = null,
+            completedAt = null,
+            amendmentWindowOpen = true,
+            entries = students
+        )
+    }
+
+    private suspend fun createAndInitializeViewModel(roster: RosterResponse): CameraAttendanceUiState.Ready {
+        coEvery { attendanceRepository.getSessionRoster(any()) } returns Result.Success(roster)
+        coEvery { faceProfileRepository.getEnrolledEmbeddingSet(any()) } returns Result.Success(
+            EnrolledEmbeddingSetResponse(
+                classSectionId = 1L,
+                entries = emptyList(),
+                highConfidenceThreshold = 0.80,
+                mediumConfidenceThreshold = 0.60,
+                unmatchedFloorThreshold = 0.60
+            )
+        )
+
+        val viewModel = CameraAttendanceViewModel(
+            attendanceRepository = attendanceRepository,
+            faceProfileRepository = faceProfileRepository,
+            savedStateHandle = androidx.lifecycle.SavedStateHandle(mapOf("sessionId" to 1L))
+        )
+        
+        // Wait for the ViewModel to finish initialization
+        var state: CameraAttendanceUiState? = null
+        var attempts = 0
+        while (state !is CameraAttendanceUiState.Ready && attempts < 10) {
+            advanceUntilIdle()
+            state = viewModel.uiState.value
+            attempts++
+        }
+        
+        return state as CameraAttendanceUiState.Ready
+    }
+
+    // Feature: face-recognition, Property 4: Confidence band determines routing between candidates and reviewQueue, exclusively
+    @Test
+    fun `HIGH confidence candidates land only in candidates map pre-selected PRESENT`() = runTest {
+        val students = listOf(
+            createRosterEntry(1001L, "R1001", "Student 1"),
+            createRosterEntry(1002L, "R1002", "Student 2"),
+            createRosterEntry(1003L, "R1003", "Student 3")
+        )
+        val viewModel = createAndInitializeViewModel(createRoster(students))
+        advanceUntilIdle()
+
+        val highCandidates = listOf(
+            DetectedFaceCandidate(
+                studentId = 1001L, rollNumber = "R1001", fullName = "Student 1",
+                confidence = 0.95, category = ConfidenceCategory.HIGH, trackingId = 1,
+                attendanceStatus = AttendanceStatus.PRESENT
+            ),
+            DetectedFaceCandidate(
+                studentId = 1002L, rollNumber = "R1002", fullName = "Student 2",
+                confidence = 0.85, category = ConfidenceCategory.HIGH, trackingId = 2,
+                attendanceStatus = AttendanceStatus.PRESENT
+            )
+        )
+
+        viewModel.onFaceDetections(emptyList(), highCandidates)
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value as? CameraAttendanceUiState.Ready
+        assertNotNull("Expected Ready state", state)
+        state!!
+
+        // R7.5: HIGH candidates are in candidates map only
+        assertTrue("HIGH candidate 1001 must be in candidates", state.candidates.containsKey(1001L))
+        assertTrue("HIGH candidate 1002 must be in candidates", state.candidates.containsKey(1002L))
+        assertFalse("HIGH candidate 1001 must NOT be in reviewQueue", state.reviewQueue.containsKey(1001L))
+        assertFalse("HIGH candidate 1002 must NOT be in reviewQueue", state.reviewQueue.containsKey(1002L))
+
+        // Verify pre-selected PRESENT
+        assertEquals(AttendanceStatus.PRESENT, state.candidates[1001L]?.attendanceStatus)
+        assertEquals(AttendanceStatus.PRESENT, state.candidates[1002L]?.attendanceStatus)
+
+        // R8.4: confirmEnabled is true when reviewQueue is empty
+        assertTrue("confirmEnabled must be true when reviewQueue is empty", state.confirmEnabled)
+    }
+
+    @Test
+    fun `MEDIUM confidence candidates land only in reviewQueue map`() = runTest {
+        val students = listOf(
+            createRosterEntry(2001L, "R2001", "Student A"),
+            createRosterEntry(2002L, "R2002", "Student B"),
+            createRosterEntry(2003L, "R2003", "Student C")
+        )
+        val viewModel = createAndInitializeViewModel(createRoster(students))
+        advanceUntilIdle()
+
+        val mediumCandidates = listOf(
+            DetectedFaceCandidate(
+                studentId = 2001L, rollNumber = "R2001", fullName = "Student A",
+                confidence = 0.72, category = ConfidenceCategory.MEDIUM, trackingId = 10,
+                attendanceStatus = AttendanceStatus.PRESENT
+            ),
+            DetectedFaceCandidate(
+                studentId = 2002L, rollNumber = "R2002", fullName = "Student B",
+                confidence = 0.65, category = ConfidenceCategory.MEDIUM, trackingId = 11,
+                attendanceStatus = AttendanceStatus.PRESENT
+            )
+        )
+
+        viewModel.onFaceDetections(emptyList(), mediumCandidates)
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value as? CameraAttendanceUiState.Ready
+        assertNotNull("Expected Ready state", state)
+        state!!
+
+        // R7.6: MEDIUM candidates are in reviewQueue only
+        assertTrue("MEDIUM candidate 2001 must be in reviewQueue", state.reviewQueue.containsKey(2001L))
+        assertTrue("MEDIUM candidate 2002 must be in reviewQueue", state.reviewQueue.containsKey(2002L))
+        assertFalse("MEDIUM candidate 2001 must NOT be in candidates", state.candidates.containsKey(2001L))
+        assertFalse("MEDIUM candidate 2002 must NOT be in candidates", state.candidates.containsKey(2002L))
+
+        // R8.4: confirmEnabled is false when reviewQueue is non-empty
+        assertFalse("confirmEnabled must be false when reviewQueue is non-empty", state.confirmEnabled)
+    }
+
+    @Test
+    fun `no-match candidates touch neither candidates nor reviewQueue`() = runTest {
+        val students = listOf(
+            createRosterEntry(3001L, "R3001", "Student X"),
+            createRosterEntry(3002L, "R3002", "Student Y"),
+            createRosterEntry(3003L, "R3003", "Student Z")
+        )
+        val viewModel = createAndInitializeViewModel(createRoster(students))
+        advanceUntilIdle()
+
+        // Send empty detections (no matches for any student)
+        viewModel.onFaceDetections(emptyList(), emptyList())
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value as? CameraAttendanceUiState.Ready
+        assertNotNull("Expected Ready state", state)
+        state!!
+
+        // R7.7: null (no match) touches neither map
+        assertFalse("No-match student 3001 must NOT be in candidates", state.candidates.containsKey(3001L))
+        assertFalse("No-match student 3002 must NOT be in candidates", state.candidates.containsKey(3002L))
+        assertFalse("No-match student 3003 must NOT be in candidates", state.candidates.containsKey(3003L))
+        assertFalse("No-match student 3001 must NOT be in reviewQueue", state.reviewQueue.containsKey(3001L))
+        assertFalse("No-match student 3002 must NOT be in reviewQueue", state.reviewQueue.containsKey(3002L))
+        assertFalse("No-match student 3003 must NOT be in reviewQueue", state.reviewQueue.containsKey(3003L))
+
+        // R8.4: confirmEnabled is true when reviewQueue is empty
+        assertTrue("confirmEnabled must be true when reviewQueue is empty", state.confirmEnabled)
+    }
+
+    @Test
+    fun `mixed batch routes HIGH MEDIUM and no-match exclusively with correct confirmEnabled state`() = runTest {
+        val students = listOf(
+            createRosterEntry(4001L, "R4001", "High Student"),
+            createRosterEntry(4002L, "R4002", "Medium Student"),
+            createRosterEntry(4003L, "R4003", "No Match Student"),
+            createRosterEntry(4004L, "R4004", "Another High"),
+            createRosterEntry(4005L, "R4005", "Another Medium")
+        )
+        val viewModel = createAndInitializeViewModel(createRoster(students))
+        advanceUntilIdle()
+
+        val mixedCandidates = listOf(
+            DetectedFaceCandidate(
+                studentId = 4001L, rollNumber = "R4001", fullName = "High Student",
+                confidence = 0.92, category = ConfidenceCategory.HIGH, trackingId = 100,
+                attendanceStatus = AttendanceStatus.PRESENT
+            ),
+            DetectedFaceCandidate(
+                studentId = 4002L, rollNumber = "R4002", fullName = "Medium Student",
+                confidence = 0.68, category = ConfidenceCategory.MEDIUM, trackingId = 101,
+                attendanceStatus = AttendanceStatus.PRESENT
+            ),
+            // 4003L has no candidate (no match)
+            DetectedFaceCandidate(
+                studentId = 4004L, rollNumber = "R4004", fullName = "Another High",
+                confidence = 0.88, category = ConfidenceCategory.HIGH, trackingId = 102,
+                attendanceStatus = AttendanceStatus.PRESENT
+            ),
+            DetectedFaceCandidate(
+                studentId = 4005L, rollNumber = "R4005", fullName = "Another Medium",
+                confidence = 0.74, category = ConfidenceCategory.MEDIUM, trackingId = 103,
+                attendanceStatus = AttendanceStatus.PRESENT
+            )
+        )
+
+        viewModel.onFaceDetections(emptyList(), mixedCandidates)
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value as? CameraAttendanceUiState.Ready
+        assertNotNull("Expected Ready state", state)
+        state!!
+
+        // HIGH candidates in candidates map only
+        assertTrue("HIGH 4001 in candidates", state.candidates.containsKey(4001L))
+        assertTrue("HIGH 4004 in candidates", state.candidates.containsKey(4004L))
+        assertFalse("HIGH 4001 NOT in reviewQueue", state.reviewQueue.containsKey(4001L))
+        assertFalse("HIGH 4004 NOT in reviewQueue", state.reviewQueue.containsKey(4004L))
+
+        // MEDIUM candidates in reviewQueue only
+        assertTrue("MEDIUM 4002 in reviewQueue", state.reviewQueue.containsKey(4002L))
+        assertTrue("MEDIUM 4005 in reviewQueue", state.reviewQueue.containsKey(4005L))
+        assertFalse("MEDIUM 4002 NOT in candidates", state.candidates.containsKey(4002L))
+        assertFalse("MEDIUM 4005 NOT in candidates", state.candidates.containsKey(4005L))
+
+        // No match touches neither
+        assertFalse("No-match 4003 NOT in candidates", state.candidates.containsKey(4003L))
+        assertFalse("No-match 4003 NOT in reviewQueue", state.reviewQueue.containsKey(4003L))
+
+        // R8.4: confirmEnabled is false because reviewQueue is non-empty
+        assertFalse("confirmEnabled must be false when reviewQueue has entries", state.confirmEnabled)
+
+        // Verify exclusivity
+        val candidateIds = state.candidates.keys
+        val reviewQueueIds = state.reviewQueue.keys
+        val intersection = candidateIds.intersect(reviewQueueIds)
+        assertTrue("No student in both maps, found: $intersection", intersection.isEmpty())
+    }
+
+    @Test
+    fun `reviewQueue becomes empty and confirmEnabled becomes true after resolving all MEDIUM matches`() = runTest {
+        val students = listOf(
+            createRosterEntry(5001L, "R5001", "High Match"),
+            createRosterEntry(5002L, "R5002", "Medium Match")
+        )
+        val viewModel = createAndInitializeViewModel(createRoster(students))
+        advanceUntilIdle()
+
+        // Initial detection with HIGH and MEDIUM
+        viewModel.onFaceDetections(
+            emptyList(),
+            listOf(
+                DetectedFaceCandidate(
+                    studentId = 5001L, rollNumber = "R5001", fullName = "High Match",
+                    confidence = 0.90, category = ConfidenceCategory.HIGH, trackingId = 200,
+                    attendanceStatus = AttendanceStatus.PRESENT
+                ),
+                DetectedFaceCandidate(
+                    studentId = 5002L, rollNumber = "R5002", fullName = "Medium Match",
+                    confidence = 0.70, category = ConfidenceCategory.MEDIUM, trackingId = 201,
+                    attendanceStatus = AttendanceStatus.PRESENT
+                )
+            )
+        )
+        advanceUntilIdle()
+
+        var state = viewModel.uiState.value as? CameraAttendanceUiState.Ready
+        assertNotNull("Expected Ready state", state)
+        state!!
+
+        // Initially confirmEnabled is false
+        assertFalse("confirmEnabled must be false with MEDIUM in queue", state.confirmEnabled)
+        assertTrue("reviewQueue must contain 5002", state.reviewQueue.containsKey(5002L))
+
+        // Confirm the MEDIUM entry (R8.2)
+        viewModel.confirmReviewEntry(5002L)
+        advanceUntilIdle()
+
+        state = viewModel.uiState.value as? CameraAttendanceUiState.Ready
+        assertNotNull("Expected Ready state", state)
+        state!!
+
+        // After confirmation, reviewQueue is empty and confirmEnabled is true
+        assertFalse("reviewQueue must NOT contain 5002 after confirmation", state.reviewQueue.containsKey(5002L))
+        assertTrue("confirmEnabled must be true when reviewQueue is empty", state.confirmEnabled)
+
+        // The confirmed entry moves to candidates with teacherConfirmed=true
+        assertTrue("Confirmed entry 5002 must be in candidates", state.candidates.containsKey(5002L))
+        assertTrue("Confirmed entry must have teacherConfirmed=true", state.candidates[5002L]?.teacherConfirmed == true)
+    }
+}

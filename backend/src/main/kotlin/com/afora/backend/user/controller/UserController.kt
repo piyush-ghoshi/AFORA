@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*
  * Spring Security extracts the Firebase UID from the token and sets it as the principal.
  */
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 class UserController(
     private val userService: UserService
 ) {

@@ -150,6 +150,19 @@ class DashboardServiceTest {
     }
 
     @Test
+    fun `teacher schedule sessions carry the subject code and name`() {
+        val date = LocalDate.of(2026, 9, 17)
+        every { lectureSessionRepository.findByTeacherAndDate(teacherId, date) } returns
+            listOf(session(1L, "09:00"))
+        every { leaveRequestRepository.countPendingForTeacher(teacherId) } returns 0
+
+        val s = service.getTeacherDashboard(teacherId, date).todaySchedule.single()
+
+        assertEquals("CS101", s.subjectCode)
+        assertEquals("Data Structures", s.subjectName)
+    }
+
+    @Test
     fun `pending leave count is passed through`() {
         stubStudentCounts(attended = 10, countable = 10, pendingLeave = 3)
         assertEquals(3, service.getStudentDashboard(studentId, null).pendingLeaveRequests)

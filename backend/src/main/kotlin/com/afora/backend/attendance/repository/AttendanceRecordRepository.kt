@@ -60,4 +60,53 @@ interface AttendanceRecordRepository : JpaRepository<AttendanceRecord, Long> {
         @Param("studentId") studentId: Long,
         @Param("semesterId") semesterId: UUID?
     ): Long
+
+    // -- Counter recomputation (R7). Derived queries, so statuses travel as
+    // -- bound parameters and no enum literal appears in JPQL. countBy returns
+    // -- 0 over an empty set, which gives R7.9 with no special case.
+
+    fun countByLectureSessionIdAndStatusIn(
+        lectureSessionId: Long,
+        statuses: Collection<AttendanceStatus>
+    ): Int
+
+    fun countByLectureSessionId(lectureSessionId: Long): Int
+
+    /** R9.5: load the records an amendment names, in one query. */
+    fun findByLectureSessionIdAndStudentIdIn(
+        lectureSessionId: Long,
+        studentIds: Collection<Long>
+    ): List<AttendanceRecord>
+
+    /**
+     * All attendance records for a student in a specific semester, ordered by
+     * session date ascending. Used by the student attendance detail screen.
+     */
+    @Query(
+        """
+        SELECT ar FROM AttendanceRecord ar
+        JOIN FETCH ar.lectureSession ls
+        JOIN FETCH ls.classSection cs
+        JOIN FETCH cs.subject
+        WHERE ar.student.id = :studentId
+          AND (:semesterId IS NULL OR ls.semesterId = :semesterId)
+        ORDER BY ls.sessionDate ASC, ls.startTime ASC
+        """
+    )
+    fun findByStudentAndSemester(
+        @Param("studentId") studentId: Long,
+        @Param("semesterId") semesterId: UUID?
+    ): List<AttendanceRecord>
+
+    /**
+     * Returns true (1 audit entry exists) when the record has been corrected
+     * via the amendment flow.
+     */
+    @Query(
+        """
+        SELECT COUNT(a) > 0 FROM AttendanceAuditEntry a
+        WHERE a.attendanceRecordId = :recordId
+        """
+    )
+    fun isCorrected(@Param("recordId") recordId: Long): Boolean
 }

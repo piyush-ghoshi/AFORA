@@ -34,7 +34,8 @@ data class FormValidation(
     val isValid: Boolean = false,
     val emailError: String? = null,
     val passwordError: String? = null,
-    val nameError: String? = null
+    val nameError: String? = null,
+    val idNumberError: String? = null
 )
 
 /**
@@ -57,15 +58,20 @@ data class RegisterFormState(
     val firstName: String = "",
     val lastName: String = "",
     val role: UserRole = UserRole.STUDENT,
+    /** Roll number (students) or employee ID (teachers). */
+    val idNumber: String = "",
     val validation: FormValidation = FormValidation()
-)
+) {
+    /** True once the roll number / employee id is long enough to send to the backend. */
+    val isIdValid: Boolean get() = idNumber.trim().length >= 3
+}
 
 /**
  * User roles for registration.
  */
-enum class UserRole(val displayName: String, val value: String) {
-    STUDENT("Student", "STUDENT"),
-    TEACHER("Teacher", "TEACHER")
+enum class UserRole(val displayName: String, val value: String, val idLabel: String) {
+    STUDENT("Student", "STUDENT", "Roll Number"),
+    TEACHER("Faculty / Teacher", "TEACHER", "Employee ID")
 }
 
 /**

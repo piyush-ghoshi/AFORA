@@ -1,0 +1,542 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Declare `kotest-property` 5.8.0 in the two build files": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038592904
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038633156
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791039529363
+      }
+    ],
+    "2.1 Write migration V9, the two entities and the two repositories": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038593110
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038634235
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791039531925
+      }
+    ],
+    "3.1 Add the `Clock` bean": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038593245
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038635340
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791039528344
+      }
+    ],
+    "4.1 Add the four additive queries": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038593337
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038636148
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791039530116
+      }
+    ],
+    "5.1 Write `attendance/dto/AttendanceDto.kt`": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038593424
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038636902
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791039531156
+      }
+    ],
+    "6.1 Implement `attendance/security/AttendanceAccessGuard.kt`": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038593541
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791039546312
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791040270022
+      }
+    ],
+    "7.1 Implement `attendance/service/SessionTransitions.kt`": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038593644
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791039547016
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791040271158
+      }
+    ],
+    "8.1 Write the shared wire types and apply the R11 corrections": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038593777
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791039548112
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791040272131
+      }
+    ],
+    "9.1 Add the `SerializationException` branch": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038593867
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791039548917
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791040272875
+      }
+    ],
+    "10. Checkpoint — end of wave 0": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038593979
+      },
+      {
+        "executionId": "09e9fd51-bb95-4f3d-a78d-2e5cce075bd1",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791299108371
+      }
+    ],
+    "11.1 Implement `attendance/service/RequestFingerprint.kt`": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038594070
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791040740830
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791041574022
+      }
+    ],
+    "12.1 Implement `attendance/service/SessionCounterRecalculator.kt`": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038594155
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791040741851
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791041575509
+      }
+    ],
+    "13.1 Implement `attendance/service/AttendanceRosterService.kt`": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038594241
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791040742923
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791041575661
+      }
+    ],
+    "14.1 Implement `attendance/service/SessionLifecycleService.kt`": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038594369
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791040743555
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791041576625
+      }
+    ],
+    "15.1 Correct and extend `shared/.../data/repository/AttendanceRepository.kt`": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038594473
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791040739997
+      }
+    ],
+    "16. Checkpoint — end of wave 1": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038594572
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791042049342
+      }
+    ],
+    "17.1 Implement `attendance/service/AttendanceConfirmationService.kt`": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038594662
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791042064533
+      },
+      {
+        "executionId": "09e9fd51-bb95-4f3d-a78d-2e5cce075bd1",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791298836860
+      },
+      {
+        "executionId": "09e9fd51-bb95-4f3d-a78d-2e5cce075bd1",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791298976763
+      }
+    ],
+    "18.1 Implement `attendance/service/AttendanceAmendmentService.kt`": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038594751
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791042065559
+      },
+      {
+        "executionId": "09e9fd51-bb95-4f3d-a78d-2e5cce075bd1",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791298839785
+      },
+      {
+        "executionId": "09e9fd51-bb95-4f3d-a78d-2e5cce075bd1",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791298977866
+      }
+    ],
+    "19.1 Implement `shared/.../data/repository/HttpAttendanceRepository.kt`": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038594864
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791042066641
+      },
+      {
+        "executionId": "09e9fd51-bb95-4f3d-a78d-2e5cce075bd1",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791298840875
+      },
+      {
+        "executionId": "09e9fd51-bb95-4f3d-a78d-2e5cce075bd1",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791298979077
+      }
+    ],
+    "20.1 Implement the UiState, the ViewModel and the test fake": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038594985
+      },
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791042067315
+      },
+      {
+        "executionId": "09e9fd51-bb95-4f3d-a78d-2e5cce075bd1",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791298840417
+      },
+      {
+        "executionId": "09e9fd51-bb95-4f3d-a78d-2e5cce075bd1",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791298979919
+      }
+    ],
+    "21. Checkpoint — end of wave 2": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038595100
+      }
+    ],
+    "22.1 Implement `attendance/service/AttendanceService.kt`": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038595207
+      }
+    ],
+    "23.1 Add `provideAttendanceRepository` to `RepositoryModule.kt`": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038595409
+      },
+      {
+        "executionId": "09e9fd51-bb95-4f3d-a78d-2e5cce075bd1",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791299088579
+      },
+      {
+        "executionId": "09e9fd51-bb95-4f3d-a78d-2e5cce075bd1",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791299107491
+      }
+    ],
+    "24.1 Implement `androidApp/.../ui/attendance/MarkAttendanceScreen.kt`": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038595562
+      }
+    ],
+    "25.1 Implement `attendance/controller/AttendanceController.kt`": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038595651
+      }
+    ],
+    "26.1 Add the route and the dashboard click handler": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038595732
+      }
+    ],
+    "28. Final checkpoint — regression guarantee": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791038595829
+      }
+    ],
+    "3. B2: The injected time source": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791039528488
+      }
+    ],
+    "1. T0: Add the property-testing dependency": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791039529451
+      }
+    ],
+    "4. B3: Add query methods to four existing repositories": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791039530226
+      }
+    ],
+    "5. B4: Backend DTOs from the normative Wire Contract tables": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791039531247
+      }
+    ],
+    "2. B1: Persistence for the two new stores": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791039532013
+      }
+    ],
+    "6. B5: Authorization": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791040270361
+      }
+    ],
+    "7. B6: The transition map": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791040271410
+      }
+    ],
+    "8. C1: Shared payload types and enum corrections": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791040272269
+      }
+    ],
+    "9. C3: The `ApiClient` deserialization-failure branch": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791040273163
+      }
+    ],
+    "15. C2: Shared repository interface corrections": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791040740394
+      }
+    ],
+    "11. B7: The request fingerprint": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791041574365
+      }
+    ],
+    "12. B8: The counter recalculator": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791041576202
+      }
+    ],
+    "13. B9: The roster service": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791041576392
+      }
+    ],
+    "14. B10: The session lifecycle service": [
+      {
+        "executionId": "f70dc70a-4828-40f9-b4dc-dd51c96d9f7c",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791041576910
+      }
+    ],
+    "17. B11: The confirmation service": [
+      {
+        "executionId": "09e9fd51-bb95-4f3d-a78d-2e5cce075bd1",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791298977265
+      }
+    ],
+    "18. B12: The amendment service": [
+      {
+        "executionId": "09e9fd51-bb95-4f3d-a78d-2e5cce075bd1",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791298978419
+      }
+    ],
+    "19. C4: The HTTP attendance repository": [
+      {
+        "executionId": "09e9fd51-bb95-4f3d-a78d-2e5cce075bd1",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791298979619
+      }
+    ],
+    "20. C6: UiState and ViewModel": [
+      {
+        "executionId": "09e9fd51-bb95-4f3d-a78d-2e5cce075bd1",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791298980239
+      }
+    ],
+    "23. C5: The Hilt binding": [
+      {
+        "executionId": "09e9fd51-bb95-4f3d-a78d-2e5cce075bd1",
+        "chatSessionId": "sess_cefbc141-1c0b-4dc0-9631-f3bcda6825dc",
+        "timestamp": 1791299107738
+      }
+    ]
+  }
+}

@@ -60,3 +60,8 @@ secrets.properties
 # Database
 *.db
 *.sqlite
+
+# Web Admin
+web-admin/node_modules/
+web-admin/dist/
+

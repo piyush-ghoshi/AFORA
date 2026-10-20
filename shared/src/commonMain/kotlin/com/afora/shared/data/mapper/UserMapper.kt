@@ -20,7 +20,12 @@ fun UserApiResponse.toDomain(): User = User(
     isActive = this.active,
     lastLoginAt = this.lastLoginAt,
     studentId = this.student?.id,
-    teacherId = this.teacher?.id
+    teacherId = this.teacher?.id,
+    rollNumber = this.student?.rollNumber,
+    employeeId = this.teacher?.employeeId,
+    department = this.student?.department ?: this.teacher?.department,
+    batch = this.student?.batch,
+    semester = this.student?.semester
 )
 
 fun StudentApiResponse.toDomain(): Student = Student(
@@ -82,7 +87,9 @@ fun LectureSessionApiResponse.toDomain(): LectureSession = LectureSession(
     onLeaveCount = this.onLeaveCount,
     startedAt = this.startedAt,
     completedAt = this.completedAt,
-    notes = this.notes
+    notes = this.notes,
+    subjectCode = this.subjectCode,
+    subjectName = this.subjectName
 )
 
 fun StudentDashboardStatsApiResponse.toDomain(): StudentDashboardStats = StudentDashboardStats(

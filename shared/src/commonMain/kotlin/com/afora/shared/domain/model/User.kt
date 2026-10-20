@@ -20,7 +20,12 @@ data class User(
     val isActive: Boolean = true,
     val lastLoginAt: String? = null,  // ISO 8601 datetime string
     val studentId: Long? = null,      // Student table PK, present when role == STUDENT
-    val teacherId: Long? = null       // Teacher table PK, present when role == TEACHER
+    val teacherId: Long? = null,      // Teacher table PK, present when role == TEACHER
+    val rollNumber: String? = null,   // students
+    val employeeId: String? = null,   // teachers
+    val department: String? = null,
+    val batch: String? = null,        // students
+    val semester: String? = null      // students
 ) {
     val fullName: String
         get() = "$firstName $lastName"

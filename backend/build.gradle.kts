@@ -37,6 +37,9 @@ dependencies {
     // Flyway for DB migrations
     implementation("org.flywaydb:flyway-core")
     
+    // OpenAPI / Swagger UI
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
+    
     // Development
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     
@@ -46,6 +49,12 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.8")
     testImplementation("com.h2database:h2")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
+    // Property testing: library only, NOT the Kotest runner, so JUnit suites keep running
+    testImplementation("io.kotest:kotest-property-jvm:5.8.0")
+    // kotest-property's checkAll is a suspend function; kotlinx-coroutines-core is already
+    // pulled in transitively (runtime scope) by kotest-property/mockk-dsl, this just makes
+    // the matching version visible on the test *compile* classpath so runBlocking resolves.
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 }
 
 tasks.withType<KotlinCompile> {
@@ -57,4 +66,8 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+tasks.withType<org.springframework.boot.gradle.tasks.run.BootRun> {
+    jvmArgs("-Djava.net.preferIPv4Stack=true")
 }

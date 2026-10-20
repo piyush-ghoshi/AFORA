@@ -48,8 +48,11 @@ class FirebaseConfig(
                 }
                 
                 // Initialize Firebase with service account
+                val credentials = GoogleCredentials.fromStream(resource.inputStream)
+                val projectId = (credentials as? com.google.auth.oauth2.ServiceAccountCredentials)?.projectId ?: "afora-5f362"
                 val options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(resource.inputStream))
+                    .setCredentials(credentials)
+                    .setProjectId(projectId)
                     .build()
                 
                 FirebaseApp.initializeApp(options)
@@ -76,4 +79,13 @@ class FirebaseConfig(
     fun firebaseAuth(): FirebaseAuth {
         return FirebaseAuth.getInstance()
     }
+
+    /**
+     * Provide FirebaseMessaging bean for push notifications.
+     */
+    @Bean
+    fun firebaseMessaging(): com.google.firebase.messaging.FirebaseMessaging {
+        return com.google.firebase.messaging.FirebaseMessaging.getInstance()
+    }
 }
+

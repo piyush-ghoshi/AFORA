@@ -57,7 +57,7 @@ class StudentDashboardViewModelTest {
     fun `when user profile loads successfully and dashboard data loads shows Success state`() = runTest {
         // Setup: user profile succeeds
         fakeUserRepository.profileResult = Result.Success(
-            User(1, "uid123", "student@afora.edu", "John", "Doe", "STUDENT")
+            User(1, "uid123", "student@afora.edu", "John", "Doe", "STUDENT", studentId = 7)
         )
         
         // Setup: dashboard data succeeds
@@ -102,7 +102,7 @@ class StudentDashboardViewModelTest {
     fun `when dashboard data fails to load shows Error state`() = runTest {
         // Setup: user profile succeeds
         fakeUserRepository.profileResult = Result.Success(
-            User(1, "uid123", "student@afora.edu", "John", "Doe", "STUDENT")
+            User(1, "uid123", "student@afora.edu", "John", "Doe", "STUDENT", studentId = 7)
         )
         
         // Setup: dashboard data fails
@@ -122,7 +122,7 @@ class StudentDashboardViewModelTest {
     fun `when dashboard has upcoming classes they are included in Success state`() = runTest {
         // Setup: user profile succeeds
         fakeUserRepository.profileResult = Result.Success(
-            User(1, "uid123", "student@afora.edu", "Jane", "Smith", "STUDENT")
+            User(1, "uid123", "student@afora.edu", "Jane", "Smith", "STUDENT", studentId = 7)
         )
         
         // Setup: dashboard with upcoming classes
@@ -174,7 +174,7 @@ class StudentDashboardViewModelTest {
 
         // Fix the error and retry
         fakeUserRepository.profileResult = Result.Success(
-            User(1, "uid123", "student@afora.edu", "John", "Doe", "STUDENT")
+            User(1, "uid123", "student@afora.edu", "John", "Doe", "STUDENT", studentId = 7)
         )
         fakeDashboardRepository.studentDashboardResult = Result.Success(
             StudentDashboardStats(
@@ -192,5 +192,32 @@ class StudentDashboardViewModelTest {
         val state = viewModel.uiState.value
         assertTrue(state is StudentDashboardUiState.Success)
         assertEquals(90.0, (state as StudentDashboardUiState.Success).data.attendancePercentage, 0.01)
+    }
+    @Test
+    fun `a profile failure is shown and not replaced by empty figures`() = runTest {
+        fakeUserRepository.profileResult = Result.Error(AppError.NotFoundError("Resource not found"))
+        // A signed-in Firebase user must NOT be used to fabricate a dashboard.
+        fakeAuthRepository.currentUserResult = Result.Success(
+            User(0, "uid123", "student@afora.edu", "John", "Doe", "STUDENT")
+        )
+
+        viewModel = buildViewModel()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value is StudentDashboardUiState.Error)
+    }
+
+    @Test
+    fun `a student with no student profile gets a clear error and no dashboard call`() = runTest {
+        fakeUserRepository.profileResult = Result.Success(
+            User(1, "uid123", "student@afora.edu", "John", "Doe", "STUDENT")  // studentId = null
+        )
+
+        viewModel = buildViewModel()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertTrue(state is StudentDashboardUiState.Error)
+        assertTrue((state as StudentDashboardUiState.Error).message.contains("profile"))
     }
 }
