@@ -12,10 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material.icons.filled.Home
@@ -75,6 +78,7 @@ fun ProfileScreen(
     onNavigateHome: () -> Unit = {},
     onNavigateToLeave: () -> Unit = {},
     onNavigateToLeaveReview: () -> Unit = {},
+    onNavigateToFaceRegistration: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val role = (uiState as? ProfileUiState.Ready)?.user?.role
@@ -117,6 +121,7 @@ fun ProfileScreen(
                 onLastNameChange = onLastNameChange,
                 onSave = onSave,
                 onLogout = onLogout,
+                onNavigateToFaceRegistration = onNavigateToFaceRegistration,
                 modifier = Modifier.padding(padding)
             )
         }
@@ -130,6 +135,7 @@ private fun ReadyContent(
     onLastNameChange: (String) -> Unit,
     onSave: () -> Unit,
     onLogout: () -> Unit,
+    onNavigateToFaceRegistration: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val user = uiState.user
@@ -184,6 +190,54 @@ private fun ReadyContent(
                     DetailRow("Department", user.department)
                     DetailRow("Batch", user.batch)
                     user.semester?.let { DetailRow("Semester", it) }
+                }
+            }
+        }
+
+        // Face Biometrics (Students)
+        if (!isTeacher) {
+            AforaCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onNavigateToFaceRegistration)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.CameraAlt,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Column {
+                            Text(
+                                text = "Face Recognition Biometrics",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = "Register or update your face profile",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    Icon(
+                        imageVector = Icons.Filled.ArrowForward,
+                        contentDescription = "Navigate to Face Registration",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }

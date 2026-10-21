@@ -129,4 +129,14 @@ class AdminAcademicController(
     ): ResponseEntity<GenerateSessionsResponse> {
         return ResponseEntity.ok(adminAcademicService.generateSessions(req))
     }
+
+    @Operation(
+        summary = "Provision Test Users in Firebase Auth",
+        description = "Creates or syncs student1, student2, student3, and teacher1 accounts in Firebase Auth with emailVerified=true and known passwords"
+    )
+    @PostMapping("/test-users/provision")
+    fun provisionTestUsers(): ResponseEntity<List<Map<String, String>>> {
+        return ResponseEntity.ok(adminAcademicService.provisionDefaultTestUsers())
+    }
 }
+

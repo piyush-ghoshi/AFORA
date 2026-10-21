@@ -84,6 +84,20 @@ class FaceRegistrationViewModel @Inject constructor(
     }
 
     /**
+     * Clears any accumulated captured shots so the student can re-capture fresh shots.
+     */
+    fun resetShots() {
+        val state = _uiState.value as? FaceRegistrationUiState.Capturing ?: return
+        if (state.isSubmitting) return
+
+        _uiState.value = state.copy(
+            capturedEmbeddings = emptyList(),
+            captureError = null,
+            error = null
+        )
+    }
+
+    /**
      * R13.3-R13.5: transmit only the accumulated on-device embeddings --
      * never image data -- to `registerFaceProfile(...)`. On success, exposes
      * [FaceRegistrationUiState.Registered] naming the embedding count the

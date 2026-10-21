@@ -52,17 +52,22 @@ object RepositoryModule {
     /**
      * ApiClient with Firebase token auto-injection.
      * Token is retrieved fresh on every request so it's always valid.
+     *
+     * URL source:
+     *  - debug builds  → BuildConfig.API_BASE_URL = "http://localhost:8080" (needs `adb reverse`)
+     *  - release builds → BuildConfig.API_BASE_URL = "https://afora-backend.onrender.com"
      */
     @Provides
     @Singleton
     fun provideApiClient(
         firebaseAuth: FirebaseAuth
     ): ApiClient = ApiClient(
-        baseUrl = "http://localhost:8080",   // localhost:8080 with adb reverse for USB physical devices & emulators
+        baseUrl = com.afora.android.BuildConfig.API_BASE_URL,
         tokenProvider = {
             firebaseAuth.currentUser?.getIdToken(false)?.await()?.token
         }
     )
+
 
     // -- Authentication -------------------------------------------------------
 

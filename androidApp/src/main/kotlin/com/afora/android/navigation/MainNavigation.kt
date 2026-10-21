@@ -204,7 +204,8 @@ fun NavGraphBuilder.mainNavGraph(
                 onBack = { navController.popBackStack() },
                 onAffirmConsent = viewModel::affirmConsent,
                 onCaptureShot = viewModel::captureShot,
-                onRegister = viewModel::register
+                onRegister = viewModel::register,
+                onResetShots = viewModel::resetShots
             )
         }
 
@@ -260,7 +261,8 @@ fun NavGraphBuilder.mainNavGraph(
                         navController.popBackStack(MainRoute.TeacherDashboard.route, inclusive = false)
                 },
                 onNavigateToLeave = { navController.navigate(MainRoute.StudentLeave.route) },
-                onNavigateToLeaveReview = { navController.navigate(MainRoute.TeacherLeaveReview.route) }
+                onNavigateToLeaveReview = { navController.navigate(MainRoute.TeacherLeaveReview.route) },
+                onNavigateToFaceRegistration = { navController.navigate(MainRoute.FaceRegistration.route) }
             )
         }
     }

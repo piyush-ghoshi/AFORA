@@ -28,7 +28,10 @@ class AdminAcademicService(
     private val semesterRepository: SemesterRepository,
     private val faceProfileRepository: com.afora.backend.facerecognition.repository.FaceProfileRepository,
     private val faceEmbeddingRepository: com.afora.backend.facerecognition.repository.FaceEmbeddingRepository,
-    private val faceProfileService: com.afora.backend.facerecognition.service.FaceProfileService
+    private val faceProfileService: com.afora.backend.facerecognition.service.FaceProfileService,
+    private val userRepository: com.afora.backend.user.repository.UserRepository,
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private val firebaseAuth: com.google.firebase.auth.FirebaseAuth? = null
 ) {
 
     private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
@@ -342,4 +345,98 @@ class AdminAcademicService(
             message = "Successfully created $count lecture session(s) across the next $days days."
         )
     }
+
+    @Transactional
+    fun provisionDefaultTestUsers(): List<Map<String, String>> {
+        val auth = firebaseAuth ?: return emptyList()
+        val defaultPassword = "Password@123"
+        val results = mutableListOf<Map<String, String>>()
+
+        val studentsToProvision = listOf(
+            Triple("student1@afora.edu", "Alice Johnson", "2024CS001"),
+            Triple("student2@afora.edu", "Bob Williams", "2024CS002"),
+            Triple("student3@afora.edu", "Charlie Brown", "2023CS050")
+        )
+
+        for ((email, name, roll) in studentsToProvision) {
+            try {
+                val userRecord = try {
+                    auth.getUserByEmail(email)
+                } catch (e: Exception) {
+                    val createReq = com.google.firebase.auth.UserRecord.CreateRequest()
+                        .setEmail(email)
+                        .setEmailVerified(true)
+                        .setPassword(defaultPassword)
+                        .setDisplayName(name)
+                    auth.createUser(createReq)
+                }
+
+                val updateReq = com.google.firebase.auth.UserRecord.UpdateRequest(userRecord.uid)
+                    .setPassword(defaultPassword)
+                    .setEmailVerified(true)
+                    .setDisplayName(name)
+                auth.updateUser(updateReq)
+                auth.setCustomUserClaims(userRecord.uid, mapOf("role" to "STUDENT"))
+
+                userRepository.findByEmail(email).ifPresent { u ->
+                    u.firebaseUid = userRecord.uid
+                    userRepository.save(u)
+                }
+
+                results.add(
+                    mapOf(
+                        "email" to email,
+                        "password" to defaultPassword,
+                        "name" to name,
+                        "rollNumber" to roll,
+                        "role" to "STUDENT",
+                        "status" to "ACTIVE"
+                    )
+                )
+            } catch (e: Exception) {
+                // log or continue
+            }
+        }
+
+        // Also ensure Teacher John Doe (teacher1@afora.edu)
+        try {
+            val teacher1 = try {
+                auth.getUserByEmail("teacher1@afora.edu")
+            } catch (e: Exception) {
+                auth.createUser(
+                    com.google.firebase.auth.UserRecord.CreateRequest()
+                        .setEmail("teacher1@afora.edu")
+                        .setEmailVerified(true)
+                        .setPassword(defaultPassword)
+                        .setDisplayName("John Doe")
+                )
+            }
+            auth.updateUser(
+                com.google.firebase.auth.UserRecord.UpdateRequest(teacher1.uid)
+                    .setPassword(defaultPassword)
+                    .setEmailVerified(true)
+                    .setDisplayName("John Doe")
+            )
+            auth.setCustomUserClaims(teacher1.uid, mapOf("role" to "TEACHER"))
+            userRepository.findByEmail("teacher1@afora.edu").ifPresent { u ->
+                u.firebaseUid = teacher1.uid
+                userRepository.save(u)
+            }
+            results.add(
+                mapOf(
+                    "email" to "teacher1@afora.edu",
+                    "password" to defaultPassword,
+                    "name" to "John Doe",
+                    "employeeId" to "EMP001",
+                    "role" to "TEACHER",
+                    "status" to "ACTIVE"
+                )
+            )
+        } catch (e: Exception) {
+            // continue
+        }
+
+        return results
+    }
 }
+

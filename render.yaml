@@ -1,0 +1,39 @@
+services:
+  # ── AFORA Spring Boot Backend ──────────────────────────────────────────────
+  - type: web
+    name: afora-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      # Active Spring profile
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+
+      # ── PostgreSQL (Neon.tech) ──────────────────────────────────────────────
+      # Set DB_URL to your Neon connection string:
+      # jdbc:postgresql://<host>.neon.tech/afora?sslmode=require
+      - key: DB_URL
+        sync: false   # Set manually in Render dashboard (secret)
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+
+      # ── Firebase Admin SDK ─────────────────────────────────────────────────
+      # Base64-encoded content of firebase-service-account.json
+      # Generate with: base64 -w 0 firebase-service-account.json
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false   # Set manually in Render dashboard (secret)
+
+      # ── CORS ───────────────────────────────────────────────────────────────
+      # Add your web-admin URL here once deployed, e.g.:
+      # https://afora-admin.netlify.app
+      - key: CORS_ORIGINS
+        value: "https://your-admin-url.com,http://localhost:3000"
+
+      # ── Port (Render sets $PORT automatically) ────────────────────────────
+      - key: PORT
+        value: "8080"
