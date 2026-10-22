@@ -34,14 +34,14 @@ android {
                 "proguard-rules.pro"
             )
             // ── PRODUCTION: Render.com deployed backend ──────────────────────
-            // Update this URL after deploying to Render!
-            buildConfigField("String", "API_BASE_URL", "\"https://afora-backend.onrender.com\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://afora.onrender.com\"")
         }
         debug {
             isMinifyEnabled = false
             // No applicationIdSuffix — must match com.afora.android in google-services.json
-            // ── DEVELOPMENT: local backend via adb reverse ───────────────────
-            buildConfigField("String", "API_BASE_URL", "\"http://localhost:8080\"")
+            // ── TESTING with deployed backend ────────────────────────────
+            // Switch back to "http://localhost:8080" for local dev
+            buildConfigField("String", "API_BASE_URL", "\"https://afora.onrender.com\"")
         }
     }
     

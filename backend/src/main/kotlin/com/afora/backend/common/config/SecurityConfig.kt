@@ -35,6 +35,7 @@ class SecurityConfig(
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
+            .cors { }
             // Disable CSRF (stateless API with token auth)
             .csrf { it.disable() }
             

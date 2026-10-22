@@ -7,6 +7,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 /**
  * Web configuration for CORS and other HTTP settings.
+ *
+ * Note: Spring does not allow allowedOrigins("*") together with allowCredentials(true).
+ * We use allowedOriginPatterns instead, which supports wildcard AND credentials.
  */
 @Configuration
 class WebConfig(
@@ -18,8 +21,10 @@ class WebConfig(
 ) : WebMvcConfigurer {
 
     override fun addCorsMappings(registry: CorsRegistry) {
+        val origins = allowedOrigins.split(",").map { it.trim() }.toTypedArray()
         registry.addMapping("/**")
-            .allowedOrigins(*allowedOrigins.split(",").toTypedArray())
+            // allowedOriginPatterns supports "*" even when allowCredentials=true
+            .allowedOriginPatterns(*origins)
             .allowedMethods(*allowedMethods.split(",").toTypedArray())
             .allowedHeaders(*allowedHeaders.split(",").toTypedArray())
             .allowCredentials(allowCredentials)
