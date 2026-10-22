@@ -4,12 +4,12 @@ FROM eclipse-temurin:17-jdk-alpine AS builder
 WORKDIR /app
 
 # Copy Gradle wrapper and build files first (better layer caching)
-COPY gradlew.bat gradlew ./
+COPY gradlew ./
 COPY gradle/ ./gradle/
 COPY build.gradle.kts settings.gradle.kts gradle.properties ./
 
-# Make gradlew executable
-RUN chmod +x gradlew || true
+# Ensure gradlew is executable (needed when copied from Windows)
+RUN chmod +x gradlew
 
 # Copy source code
 COPY src/ ./src/
