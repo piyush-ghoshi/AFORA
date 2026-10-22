@@ -9,8 +9,8 @@ set -e
 # decode it and write it to the expected location.
 if [ -n "$FIREBASE_SERVICE_ACCOUNT_JSON" ]; then
     echo "[entrypoint] Writing Firebase service account from environment..."
-    echo "$FIREBASE_SERVICE_ACCOUNT_JSON" | base64 -d > /app/firebase-service-account.json
-    export FIREBASE_SA_PATH="file:/app/firebase-service-account.json"
+    echo "$FIREBASE_SERVICE_ACCOUNT_JSON" | base64 -d > /tmp/firebase-service-account.json
+    export FIREBASE_SA_PATH="file:/tmp/firebase-service-account.json"
 else
     # Fallback: use classpath-bundled file (only for local Docker runs)
     echo "[entrypoint] FIREBASE_SERVICE_ACCOUNT_JSON not set — using bundled classpath file."
